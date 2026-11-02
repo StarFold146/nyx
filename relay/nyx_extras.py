@@ -24,6 +24,7 @@ This file is part of the Nyx relay, a modified version of Tidal Echo, and is
 licensed under the GNU AGPL v3 (see LICENSE and NOTICE in this folder).
 """
 import asyncio
+import fcntl
 import json
 import os
 import re
@@ -74,10 +75,48 @@ TMUX = os.environ.get("RELAY_TMUX_SESSION", "companion")
 COMPANION_UNIT = Path(os.environ.get("RELAY_COMPANION_UNIT", "/etc/systemd/system/nyx-companion.service"))
 CLAUDE_PROJECT = Path.home() / ".claude" / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(COMPANION_DIR))
 QUIET_SEC = 45          # after the memory note, compact once the AI has answered and been quiet this long
+WATCH_LOCK = Path(os.environ.get("RELAY_WATCH_LOCK", "/tmp/window-watch.lock"))   # held while the window restarts, so a window watcher sharing this flock can't start a second one
+STARTUP_PROMPT = "Teach auto mode about your environment"
+MODEL_SET_MARK = "Set model to"   # what Claude Code prints once /model has taken
+START_ENV_KEYS = {"PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG", "TERM", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"}   # all a window gets from the relay: its secrets stay here, and could otherwise reach a tmux server this start brings up
 PROMPT_MARKS = ("Esc to cancel", "Enter to confirm", "Do you want", "\u276f 1.")   # a box is waiting: typing would answer it
 
 CLAUDE_MODELS = os.environ.get("RELAY_MODEL_OPTIONS",
                                "claude-opus-5-5:Opus 5.5,claude-sonnet-5-5:Sonnet 5.5,claude-haiku-5-5:Haiku 5.5")
+
+
+def live_session_meta(tmux_name):
+    """sessions/<pid>.json of the Claude Code process running in a tmux session. A dead process can leave its file
+    behind, so only live ones count, newest first."""
+    best = {}
+    for meta in (Path.home() / ".claude" / "sessions").glob("*.json"):
+        try:
+            d = json.loads(meta.read_text())
+        except Exception:
+            continue
+        if str(d.get("tmux", "")).split(":")[0] != tmux_name or not d.get("sessionId"):
+            continue
+        try:
+            os.kill(int(d.get("pid") or meta.stem), 0)
+        except PermissionError:
+            pass
+        except (OSError, ValueError):
+            continue
+        if not best or (d.get("startedAt") or 0) > (best.get("startedAt") or 0):
+            best = d
+    return best
+
+
+def window_env(path=None, resume=""):
+    env = {k: v for k, v in os.environ.items() if k in START_ENV_KEYS or k.startswith("LC_")}
+    return dict(env, **({"PATH": path} if path else {}), **({"NYX_RESUME": resume} if resume else {}))
+
+
+def input_box_showing(pane):
+    """A confirmation box replaces the ── ❯ ── input box; the marks alone can just be scrolled-by text."""
+    lines = [l for l in (pane or "").rstrip().splitlines() if l.strip()]
+    return any(lines[i].startswith("───") and lines[i + 1].startswith("❯") and lines[i + 2].startswith("───")
+               for i in range(max(0, len(lines) - 20), len(lines) - 2))
 
 
 def register(app, g):
@@ -297,7 +336,7 @@ def register(app, g):
                         "resets_at": rl[k].get("resets_at")} for k in labels if isinstance(rl.get(k), dict)],
             "context": {"used_pct": cw.get("used_percentage"), "size": cw.get("context_window_size")} if cw else None,
             "models": [{"id": a, "name": b} for a, _, b in (x.partition(":") for x in CLAUDE_MODELS.split(",")) if a],
-            "model_applies": "restart",
+            "model_applies": "live",
             "ts": time.time(),
         }
 
@@ -310,12 +349,64 @@ def register(app, g):
             pass
         return claude_meter()
 
+    window_ctx_size = {}   # sid -> context size, remembered from the turns where the shared usage file was this window's
+
+    def window_model():
+        """(model id, unix time) of this window's last real reply, from its own transcript."""
+        m = session_meta()
+        if not m:
+            return "", 0
+        f = CLAUDE_PROJECT / f"{m['sessionId']}.jsonl"
+        try:
+            with f.open("rb") as fh:
+                fh.seek(max(0, f.stat().st_size - 600_000))
+                lines = fh.read().decode("utf-8", "ignore").splitlines()
+        except OSError:
+            return "", 0
+        for line in reversed(lines):
+            if '"assistant"' not in line or '"model"' not in line:
+                continue
+            try:
+                d = json.loads(line)
+                mid = d["message"]["model"]
+                if d.get("type") != "assistant" or d.get("isSidechain") or not mid or mid.startswith("<"):
+                    continue
+                return mid, datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00")).timestamp()
+            except (KeyError, TypeError, ValueError, AttributeError):
+                continue
+        return "", 0
+
+    def window_meter(m):
+        """The usage file is shared by every window on the machine: whoever refreshed last. The limits are the account's,
+        so they can stay; the model and context have to be this window's own."""
+        u = claude_usage()
+        sid = u.get("sid") or ""
+        mid, at = window_model()
+        try:   # a confirmed pick is written here, and can be newer than the last reply
+            if model_file.stat().st_mtime > at and (at or not mid):
+                mid = model_file.read_text(encoding="utf-8").strip() or mid
+        except OSError:
+            pass
+        names = {x["id"]: x["name"] for x in m.get("models") or []}
+        m["model"] = {"id": mid or None, "name": names.get(mid) or mid or None}
+        try:
+            shared = json.loads(USAGE_FILE.read_text(encoding="utf-8"))
+            if sid and shared.get("session_id") == sid:
+                window_ctx_size[sid] = (shared.get("context_window") or {}).get("context_window_size")
+        except (OSError, ValueError):
+            pass
+        size, used = window_ctx_size.get(sid), u.get("used")
+        m["context"] = {"used_pct": round(used * 100 / size, 1), "size": size} if size and used else None
+        return m
+
     @app.get("/app/meter")
     async def meter_get(request: Request):
         check_auth(request)
         m = current_meter()
         if not m:
             raise HTTPException(status_code=503, detail="nothing reported yet")
+        if m.get("model_applies") == "live":
+            m = await asyncio.to_thread(window_meter, m)
         try:
             m["chosen"] = model_file.read_text(encoding="utf-8").strip() or None
         except Exception:
@@ -342,14 +433,36 @@ def register(app, g):
 
     @app.post("/app/model")
     async def model_post(request: Request):
-        """{model: "<id>"} — a bridge picks it up on the next message; Claude Code on its next start."""
+        """{model: "<id>"} — a bridge picks it up on the next message. Claude Code: typed into the running window, 409 when
+        it's not idle, and then nothing is written. confirmed is true only when the window printed its own confirmation."""
         check_auth(request)
         b = await request.json()
         mid = str(b.get("model") or "").strip()[:80]
-        if mid and not all(c.isalnum() or c in "-._:/" for c in mid):
+        if backend() == "codex":
+            if mid and not all(c.isalnum() or c in "-._:/" for c in mid):
+                raise HTTPException(status_code=400, detail="bad model id")
+            model_file.write_text(mid, encoding="utf-8")
+            return {"ok": True, "model": mid or None}
+        if mid not in {x.partition(":")[0] for x in CLAUDE_MODELS.split(",")}:
             raise HTTPException(status_code=400, detail="bad model id")
-        model_file.write_text(mid, encoding="utf-8")
-        return {"ok": True, "model": mid or None}
+        st = await asyncio.to_thread(claude_busy)
+        pane = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+        if st.get("state") != "idle" or pane.returncode != 0 or not input_box_showing(pane.stdout):
+            raise HTTPException(status_code=409, detail=st.get("state") or "busy")
+        seen = pane.stdout.count(MODEL_SET_MARK)
+        proc = await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "C-u", "/model " + mid, "Enter")
+        if proc.returncode != 0:
+            raise HTTPException(status_code=502, detail="couldn't reach the window")
+        confirmed = False
+        for _ in range(10):
+            await asyncio.sleep(0.5)
+            now = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+            if now.returncode == 0 and now.stdout.count(MODEL_SET_MARK) > seen:
+                confirmed = True
+                break
+        if confirmed:   # the next start reads this file; an unconfirmed pick must not be what it finds
+            model_file.write_text(mid, encoding="utf-8")
+        return {"ok": True, "model": mid, "applied": True, "confirmed": confirmed}
 
     # ---- Usage: Claude Code's 5-hour / weekly limits, as saved by a status-line script ----
     @app.get("/app/usage")
@@ -398,6 +511,7 @@ def register(app, g):
                   "pri": b.get("pri") if b.get("pri") in ("p0", "p1", "p2") else "p1",
                   "size": b.get("size") if b.get("size") in ("S", "M", "L") else "M",
                   "status": "todo", "owner": "", "files": [], "by": clip(b.get("by") or human, 20),
+                  "to": clip(b.get("to"), 20), "day": bool(b.get("day")),   # who it's for, and whether the AI may do it on its own in the daytime
                   "wait": bool(b.get("wait")), "proof": clip(b.get("proof"), 400),
                   "ts": now_iso(), "updated": now_iso(), "log": []}
             items.append(it); board_save(items)
@@ -423,8 +537,11 @@ def register(app, g):
                 it["pri"] = b["pri"]
             if b.get("size") in ("S", "M", "L"):
                 it["size"] = b["size"]
-            if "wait" in b:
-                it["wait"] = bool(b["wait"])
+            if "to" in b:
+                it["to"] = clip(b["to"], 20)
+            for k in ("day", "wait"):
+                if k in b:
+                    it[k] = bool(b[k])
             if b.get("status") in BOARD_ST and b["status"] != it["status"]:
                 it["log"].append({"ts": now_iso(), "who": who, "text": f"{it['status']} → {b['status']}"})
                 it["status"] = b["status"]
@@ -545,15 +662,7 @@ def register(app, g):
         return subprocess.run(["tmux", *a], capture_output=True, text=True, timeout=timeout)
 
     def session_meta():
-        """sessions/<pid>.json of the Claude Code process running in our tmux session."""
-        for meta in (Path.home() / ".claude" / "sessions").glob("*.json"):
-            try:
-                d = json.loads(meta.read_text())
-            except Exception:
-                continue
-            if str(d.get("tmux", "")).split(":")[0] == TMUX and d.get("sessionId"):
-                return d
-        return {}
+        return live_session_meta(TMUX)
 
     def claude_usage():
         m = session_meta()
@@ -592,20 +701,94 @@ def register(app, g):
             raise HTTPException(status_code=409, detail="the window is waiting on a question; answer it in the terminal first")
         await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "C-u", "/compact", "Enter")
 
-    async def claude_restart(resume=""):
+    restart_lock = asyncio.Lock()
+
+    async def hold_watch_lock():
+        """Take the window watcher's flock for the restart. Best effort: None means carry on without it."""
         try:
-            unit = COMPANION_UNIT.read_text().splitlines()
-            cmd = shlex.split(next(l for l in unit if l.startswith("ExecStart="))[len("ExecStart="):])
-        except Exception:
-            raise HTTPException(status_code=503, detail="don't know how to start the window (" + str(COMPANION_UNIT) + ")")
-        unit_path = next((l[len("Environment=PATH="):] for l in unit if l.startswith("Environment=PATH=")), None)   # where claude and bun live
-        await asyncio.to_thread(tmux, "kill-session", "-t", TMUX)
-        ctx.update(nudged_sid="", nudged_at=None)
-        await asyncio.sleep(1)
-        env = dict(os.environ, **({"PATH": unit_path} if unit_path else {}), **({"NYX_RESUME": resume} if resume else {}))
-        proc = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=120, env=env)
-        if proc.returncode != 0:
-            raise HTTPException(status_code=500, detail="the window didn't start: " + (proc.stdout + proc.stderr)[-200:])
+            f = WATCH_LOCK.open("a")
+        except OSError:
+            return None
+        for _ in range(5):
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return f
+            except OSError:
+                await asyncio.sleep(1)
+        f.close()
+        return None
+
+    async def dismiss_startup_prompts():
+        """The start script handles the first boxes; this one shows up later."""
+        for _ in range(40):
+            await asyncio.sleep(3)
+            pane = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+            if pane.returncode != 0:
+                return
+            if STARTUP_PROMPT in pane.stdout and not input_box_showing(pane.stdout):
+                await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "2", "Enter")
+                return
+
+    async def run_start(cmd, env):
+        """Returns "" when the start command says it worked, otherwise why it didn't."""
+        try:
+            proc = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=120, env=env)
+        except (subprocess.TimeoutExpired, OSError) as e:
+            return type(e).__name__
+        return "" if proc.returncode == 0 else (proc.stdout + proc.stderr)[-200:] or "it exited with an error"
+
+    async def window_up(old, fresh):
+        """A start command returning 0 proves little: wait until a live session answers, and isn't sitting on a box."""
+        for _ in range(15):
+            await asyncio.sleep(2)
+            pane = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+            if pane.returncode != 0:
+                return False
+            if STARTUP_PROMPT in pane.stdout and not input_box_showing(pane.stdout):
+                await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "2", "Enter")
+                continue
+            sid = session_meta().get("sessionId")
+            tail = "\n".join(pane.stdout.rstrip().splitlines()[-15:])
+            stuck = any(s in tail for s in PROMPT_MARKS) and not input_box_showing(pane.stdout)
+            if sid and (sid != old or not fresh) and not stuck:
+                return True
+        return False
+
+    async def claude_restart(resume=""):
+        """Closes the window and opens the next. If the next one doesn't come up, the old one is brought back and this raises 500."""
+        if restart_lock.locked():
+            raise HTTPException(status_code=409, detail="the window is already restarting")
+        async with restart_lock:
+            try:
+                unit = COMPANION_UNIT.read_text().splitlines()
+                cmd = shlex.split(next(l for l in unit if l.startswith("ExecStart="))[len("ExecStart="):])
+            except Exception:
+                raise HTTPException(status_code=503, detail="don't know how to start the window (" + str(COMPANION_UNIT) + ")")
+            unit_path = next((l[len("Environment=PATH="):] for l in unit if l.startswith("Environment=PATH=")), None)   # where claude and bun live
+            def start_env(sid):
+                return window_env(unit_path, sid)
+            old = session_meta().get("sessionId", "")
+            watch = await hold_watch_lock()
+            try:
+                await asyncio.to_thread(tmux, "kill-session", "-t", TMUX)
+                ctx.update(nudged_sid="", nudged_at=None)
+                await asyncio.sleep(1)
+                why = await run_start(cmd, start_env(resume))
+                if not why and not await window_up(old, not resume):
+                    why = "it never came up"
+                if not why:
+                    asyncio.get_running_loop().create_task(dismiss_startup_prompts())
+                    return
+                await asyncio.to_thread(tmux, "kill-session", "-t", TMUX)
+                await asyncio.sleep(1)
+                back = not await run_start(cmd, start_env(old)) and await window_up(old, False)
+                if back:
+                    asyncio.get_running_loop().create_task(dismiss_startup_prompts())
+                raise HTTPException(status_code=500, detail="the window didn't start: " + why + (
+                    "; the old one is back" if back else "; the old one didn't come back either"))
+            finally:
+                if watch:
+                    watch.close()
 
     def claude_windows():
         tag = '<channel source=\\"companion\\"'
@@ -679,9 +862,25 @@ def register(app, g):
         check_auth(request)
         if backend() == "codex":
             queue_cmd("compact")
-        else:
-            await claude_compact()
-        return {"ok": True}
+            return {"ok": True}
+        st = await asyncio.to_thread(claude_busy)
+        pane = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+        if st.get("state") == "offline" or pane.returncode != 0:
+            raise HTTPException(status_code=503, detail="the window isn't running")
+        if st.get("state") != "idle" or not input_box_showing(pane.stdout):
+            raise HTTPException(status_code=409, detail=st.get("state") or "busy")
+        seen = pane.stdout.count("Compacting")
+        proc = await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "C-u", "/compact", "Enter")
+        if proc.returncode != 0:
+            raise HTTPException(status_code=502, detail="couldn't reach the window")
+        started = False
+        for _ in range(8):   # started says whether the window visibly took it
+            await asyncio.sleep(0.5)
+            now = await asyncio.to_thread(tmux, "capture-pane", "-pt", TMUX)
+            if now.returncode == 0 and now.stdout.count("Compacting") > seen:
+                started = True
+                break
+        return {"ok": True, "applied": True, "started": started}
 
     @app.post("/app/window/carry")
     async def window_carry(request: Request):
@@ -695,11 +894,11 @@ def register(app, g):
         check_auth(request)
         c = carry_cfg()
         text = await asyncio.to_thread(carry_text, c["hours"], c["chars"])
-        asyncio.get_running_loop().create_task(hand_over(text))
         if backend() == "codex":
             queue_cmd("new")
         else:
-            await claude_restart()
+            await claude_restart()   # the note waits for this: a failed restart must not tell the old window it's a new one
+        asyncio.get_running_loop().create_task(hand_over(text))
         return {"ok": True}
 
     @app.get("/app/window/list")

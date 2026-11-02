@@ -128,11 +128,12 @@
       Wn.body.innerHTML = '<p class="none">Looking…</p>'; Wn.open();
       (names.chat || api)("/app/window/list").then(function (d) {
         var ws = d.windows || [];
-        Wn.body.innerHTML = ws.length ? ws.map(function (w, i) {
-          return '<button type="button" class="file win' + (w.current ? " cur" : "") + '" data-i="' + i + '"><span class="wt">' + (w.current ? "<b>in use</b> · " : "") + "opened " + esc(when(w.started) || "–")
+        var known = ws.some(function (w) { return w.current; });
+        Wn.body.innerHTML = (ws.length && !known ? '<p class="none">Can\u2019t tell which window is running right now, so none is marked.</p>' : "") + (ws.length ? ws.map(function (w, i) {
+          return '<button type="button" class="file win' + (w.current ? " cur" : "") + '" data-i="' + i + '"><span class="wt">' + (w.current ? '<b class="now">● in use now</b> · ' : "") + "opened " + esc(when(w.started) || "–")
             + (w.messages != null ? " · " + w.messages + " messages" : "") + "</span><span>" + (w.usage_tokens ? Math.round(w.usage_tokens / 1000) + "k · " : "") + "last " + esc(when(w.last) || "just now") + "</span>"
             + '<span class="wx">' + esc((w.last_text || "(nothing said yet)").replace(/\s+/g, " ")) + "</span></button>";
-        }).join("") : '<p class="none">No windows yet.</p>';
+        }).join("") : '<p class="none">No windows yet.</p>');
         Wn.body.onclick = function (e) {
           var b = e.target.closest("[data-i]"); if (!b) return; var w = ws[+b.dataset.i]; if (w.current) return;
           if (!confirm("Go back to the window opened " + when(w.started) + "? The one in use closes; you can come back to it here too.")) return;

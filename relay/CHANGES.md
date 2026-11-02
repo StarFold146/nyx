@@ -30,7 +30,7 @@ Nyx 其他房间要的接口，每个都可以不装，没装的那个只回 503
 - 一起听 Listen：`POST /app/music/<action>`、`GET|POST /app/music/now`，接本机的网易云小桥（见 `docs/listen-netease.md`）
 - 小螃蟹 Clawd：`POST /app/clawd`，设了 `ANTHROPIC_API_KEY` 才开
 - 额度 Usage：`GET /app/usage`，读 Claude Code 状态栏存下来的五小时 / 一周用量
-- 仪表 Meter / Model：`GET|POST /app/meter`、`GET|POST /app/model`，悬浮球里的模型、额度、上下文
+- 仪表 Meter / Model：`GET|POST /app/meter`、`GET|POST /app/model`，悬浮球里的模型、额度、上下文。Claude Code 的模型当场打进窗口（窗口确认了才存），模型和上下文按当前窗口算
 - 工程板 Board：`GET|POST /app/board`、`POST /app/board/<id>`，AI 用 `relay/board.py`
 - 心脏 Heart：`GET /app/heart`、`GET /app/heart/file`，只读人设、记忆文件夹、后台代码，钥匙打码
 - 窗口 Window：`GET /app/window`、`POST /app/window/{line,compact,new,switch}`、`GET /app/window/list`；压缩线（过线先让 AI 写记忆，安静下来自动压缩）、压缩一下、开新窗口、回到旧窗口。Claude Code 走 tmux，Codex 由 bridge 来取命令（`GET /app/window/cmd`）

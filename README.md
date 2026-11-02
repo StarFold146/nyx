@@ -90,7 +90,7 @@ Optional, for the other rooms:
 | POST | `/app/music/now` | `{ id, name, artist, state, together }` — what's playing, so the companion can listen along |
 | POST | `/app/clawd` | see **Clawd** below |
 | GET | `/app/meter` | `{ backend, model:{id,name}, limits:[{label, used, resets_at}], context:{used_pct}, models:[{id,name}], model_applies, chosen }` — the floating ball in the chat |
-| POST | `/app/model` | `{ model }` — switch the companion's model from the floating ball |
+| POST | `/app/model` | `{ model }` — switch the companion's model from the floating ball. Claude Code: typed into the running window, 409 and nothing saved if it isn't idle; `confirmed` says whether the window printed its confirmation |
 | GET | `/app/usage` | `{ five_hour: { used, resets_at }, seven_day: {…} }` — Claude Code usage limits, see `relay/README.md` |
 | GET/POST | `/app/board`, `/app/board/<id>` | the Yard (船坞), the engineering board in the Hold; the AI uses `relay/board.py` (`next`, `claim`, `note`, `done`); its routine is in [`docs/AI-WORKFLOW.md`](docs/AI-WORKFLOW.md) |
 | GET | `/app/heart`, `/app/heart/file?path=` | read-only: `~/companion/CLAUDE.md` or `AGENTS.md`, `~/companion/memory/*.md`, the relay code; keys are blanked |

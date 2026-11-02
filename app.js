@@ -559,7 +559,7 @@
   }
 
   /* ---------- the floating ball: GET /app/meter, POST /app/model ---------- */
-  var meterData = null, meterT = 0;
+  var meterData = null, meterT = 0, modelPin = null;
   function pct(v) { return v == null ? null : Math.max(0, Math.min(100, Math.round(v))); }
   function whenReset(t) {
     if (!t) return "";
@@ -591,15 +591,19 @@
     $("mCtx").hidden = cv == null;
     $("mCtx").querySelector("b").style.width = (cv || 0) + "%";
     $("mCtx").querySelector("em").textContent = cv == null ? "" : cv + "%";
-    var cur = m.chosen || (m.model && m.model.id);
+    var pin = modelPin && Date.now() < modelPin.until ? modelPin : null;
+    var actual = m.model && m.model.id, live = m.model_applies === "live";
+    var listed = (m.models || []).some(function (x) { return x.id === actual; });
+    var cur = (pin && pin.id) || (live && listed ? actual : m.chosen || actual);
     $("mList").innerHTML = (m.models || []).map(function (x) {
       return '<button type="button" data-id="' + esc(x.id) + '"' + (x.id === cur ? ' class="on"' : "") + ">" + esc(x.name || x.id) + "</button>";
     }).join("");
-    $("mNote").textContent = m.model_applies === "next" ? "A new pick applies from the next message." :
+    $("mNote").textContent = pin ? pin.note : live ? "A new pick applies right away." :
+      m.model_applies === "next" ? "A new pick applies from the next message." :
       m.model_applies === "restart" ? "A new pick applies the next time the session starts." : "";
   }
   /* the window: context line, compact, new window, old windows (GET /app/window …) */
-  var win = null;
+  var win = null, winRaw = "", winCheck = false, winResult = null;
   function kfmt(n) { return n >= 1000 ? Math.round(n / 1000) + "k" : String(n || 0); }
   function paintWin() {
     var w = win; $("mWin").hidden = !w; if (!w) return;
@@ -614,9 +618,31 @@
     else if (!(meterData && meterData.context && meterData.context.used_pct != null)) ctx.querySelector("b").style.width = "0%";
     ctx.querySelector("em").textContent = kfmt(w.used) + (w.line_k ? " / " + w.line_k + "k" : "");
     var s0 = w.started_at, sec = typeof s0 === "number" ? (s0 > 1e12 ? s0 / 1000 : s0) : s0 ? Date.parse(s0) / 1000 : 0;   // ms, s or ISO
-    $("mWinNote").textContent = sec ? "This window opened " + whenReset(sec) + "." : "";
+    if (winCheck) return;
+    var line = sec ? "This window opened " + whenReset(sec) + (winRaw ? " · id " + winRaw.slice(0, 8) : "") + "." : winRaw ? "This window · id " + winRaw.slice(0, 8) + "." : "";
+    if (winResult && Date.now() - winResult.at > 600000) winResult = null;
+    $("mWinNote").textContent = winResult ? winResult.text + (winResult.same ? "" : " " + line) : line;
   }
-  function loadWin() { return api("/app/window").then(function (d) { win = d; paintWin(); }).catch(function () { win = null; paintWin(); }); }
+  /* a 200 only means the relay ran the script, so ask who is actually running: the sid has to change */
+  function winSec(s0) { return typeof s0 === "number" ? (s0 > 1e12 ? s0 / 1000 : s0) : s0 ? Date.parse(s0) / 1000 : 0; }
+  function verifyWin(before, label) {
+    var start = Date.now(), last = "", lastAt = 0;
+    winCheck = true; winResult = null; $("mWinNote").textContent = "Checking the window really changed…";
+    function finish(text, same) { winCheck = false; winResult = { text: text, same: same, at: Date.now() }; loadWin(); loadMeter(); paintWin(); }
+    (function tick() {
+      api("/app/window").then(function (d) { return d; }, function () { return null; }).then(function (d) {
+        if (d && d.sid) { last = d.sid; lastAt = d.started_at; }
+        if (d && d.sid && d.sid !== before) {
+          var sec = winSec(d.started_at);
+          return finish(label + (sec ? " It opened " + whenReset(sec) + "," : "") + " id " + d.sid.slice(0, 8) + ".", true);
+        }
+        if (Date.now() - start < 90000) return void setTimeout(tick, 4000);
+        if (last && last === before) finish("It did NOT change: you're still in the old window, id " + before.slice(0, 8) + ".", true);
+        else finish("Couldn't confirm: no window is answering yet. Check again in a minute.", true);
+      });
+    })();
+  }
+  function loadWin() { return api("/app/window").then(function (d) { win = d; winRaw = d.sid || ""; paintWin(); }).catch(function () { win = null; winRaw = ""; paintWin(); }); }
   var lineT = 0;
   $("mLine").addEventListener("input", function () { var k = +this.value; $("mLineV").textContent = k ? k + "k" : "none";
     clearTimeout(lineT); lineT = setTimeout(function () { api("/app/window/line", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ line_k: k }) }).then(loadWin).catch(function () {}); }, 500); });
@@ -627,12 +653,24 @@
   function winAct(path, ask, done) {
     if (ask && !confirm(ask)) return;
     $("mWinNote").textContent = "…";
-    api(path, { method: "POST" }).then(function () { $("mWinNote").textContent = done; setTimeout(function () { loadWin(); loadMeter(); }, 2500); })
-      .catch(function (e) { $("mWinNote").textContent = /409/.test(e.message) ? "It's waiting on a question in the terminal — answer that first." : "Didn't work: " + e.message; });
+    api(path, { method: "POST" }).then(function (r) { $("mWinNote").textContent = r && r.started === false ? "Sent, but it hasn't visibly started." : done; setTimeout(function () { loadWin(); loadMeter(); }, 2500); })
+      .catch(function (e) { $("mWinNote").textContent = /409/.test(e.message) ? "It's busy or waiting on a question, so it did NOT go through. Try again when it has finished." : "Didn't work: " + e.message; });
+  }
+  function newWin(ask) {
+    if (!confirm(ask)) return;
+    winCheck = true; winResult = null; $("mWinNote").textContent = "…";
+    api("/app/window").then(function (d) { return d.sid || ""; }, function () { return winRaw; }).then(function (before) {
+      return api("/app/window/new", { method: "POST" }).then(function () { verifyWin(before, "New window open."); }, function (e) {
+        if (/500/.test(e.message)) return verifyWin(before, "The first start failed, but a window is back up.");
+        if (/50[24]|fetch|network|abort|timeout/i.test(e.message)) return verifyWin(before, "New window open.");
+        winCheck = false; winResult = { text: /409/.test(e.message) ? "It's busy restarting already, so nothing changed." : "Didn't work: " + e.message + ". Still the old window.", same: false, at: Date.now() }; paintWin();
+      });
+    });
   }
   $("mCompact").onclick = function () { winAct("/app/window/compact", "", "Compacting — give it a minute."); };
-  $("mNew").onclick = function () { winAct("/app/window/new", "Open a new window for " + AI + "? This one closes. " + (+$("mCarryH").value ? "The new one is handed the last " + $("mCarryHV").textContent + " of your talk (up to " + $("mCarryCV").textContent + " characters); the rest comes from memory." : "Nothing is carried over; only memory comes along.") + " You can come back to this one from Windows.", "New window open."); };
-  $("mWins").onclick = function () { if (hold) hold.windows(function () { loadWin(); loadMeter(); }); };
+  $("mNew").onclick = function () { newWin("Open a new window for " + AI + "? This one closes. " + (+$("mCarryH").value ? "The new one is handed the last " + $("mCarryHV").textContent + " of your talk (up to " + $("mCarryCV").textContent + " characters); the rest comes from memory." : "Nothing is carried over; only memory comes along.") + " You can come back to this one from Windows."); };
+  $("mWins").onclick = function () { if (!hold) return; var before = winRaw; api("/app/window").then(function (d) { if (d.sid) before = d.sid; }, function () {});
+    hold.windows(function () { verifyWin(before, "Switched windows."); }); };
   function loadMeter() {
     if (!key || GROUP) return Promise.resolve();
     return api("/app/meter").then(function (d) { meterData = d; paintOrb(); if (!$("meter").hidden) { paintMeter(); paintWin(); } }).catch(function () { meterData = null; paintOrb(); });
@@ -643,9 +681,15 @@
   $("mList").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-id]"); if (!b) return;
     $("mNote").textContent = "…";
+    function pinModel(id, note) { modelPin = { id: id, note: note, until: Date.now() + 60000 }; paintMeter(); setTimeout(loadMeter, 1500); }
     api("/app/model", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: b.dataset.id }) })
-      .then(function () { if (meterData) { meterData.chosen = b.dataset.id; paintMeter(); } setTimeout(loadMeter, 1500); })
-      .catch(function (err) { $("mNote").textContent = /409/.test(err.message) ? "It's busy right now — try again when it has finished." : "Couldn't switch: " + err.message; });
+      .then(function (r) {
+        if (meterData) meterData.chosen = b.dataset.id;
+        if (r && r.confirmed) pinModel(b.dataset.id, "Switched. The window confirmed it.");
+        else if (r && r.applied) pinModel(null, "Sent to the window, but it can't be confirmed from here. The next start keeps the old pick.");
+        else pinModel(null, "Saved. It applies per this backend's note.");
+      })
+      .catch(function (err) { pinModel(null, /409/.test(err.message) ? "It's busy right now, so it did NOT switch. Try again when it has finished." : "Did NOT switch: " + err.message); });
   });
   (function drag() {
     var orb = $("orb"), sx, sy, ox, oy, moved = false;

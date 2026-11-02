@@ -1,6 +1,10 @@
 # Keeps your companion's Claude Code session running and starts it at boot.
 # Copy to /etc/systemd/system/, replace YOU and the paths, then:
 #   sudo systemctl daemon-reload && sudo systemctl enable --now claude-companion
+# The relay's New window button starts this unit's ExecStart, so tell it where this is, in relay.env:
+#   RELAY_COMPANION_UNIT=/etc/systemd/system/claude-companion.service
+#   RELAY_COMPANION_DIR=/home/YOU/companion
+#   RELAY_TMUX_SESSION=companion
 # Part of the Nyx relay (modified Tidal Echo), GNU AGPL v3.
 [Unit]
 Description=Claude Code companion session
