@@ -22,7 +22,7 @@ New to servers? Start with [docs/新手上路.md](docs/新手上路.md).
 
 ## What's here
 
-- `index.html`, `app.css`, `app.js` — the chat: key gate, history, live streamed replies, quotes, attachments, stickers, emoji.
+- `index.html`, `app.css`, `app.js` — the chat: key gate, history, replies that arrive live (Codex streams them word by word; Claude Code sends each reply whole), quotes, attachments, stickers, emoji.
 - `home.js` — the home poster: one ink river, entries hung on alternating banks, each with a small drawing from inside a language model.
 - `splash.js` — the opening card: first letters fall into a column, each pulls its word out to the right; on a flip the words turn over.
 - `listen.html/.js/.css` — Listen: a record on the paper, a glass player card, Together / Alone, and a now-playing page with lyrics.
