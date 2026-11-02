@@ -89,6 +89,7 @@ Optional, for the other rooms:
 | POST | `/app/music/*` | Listen with NetEase — see `docs/listen-netease.md` |
 | POST | `/app/music/now` | `{ id, name, artist, state, together }` — what's playing, so the companion can listen along |
 | POST | `/app/clawd` | see **Clawd** below |
+| GET | `/app/agents` | `{ agents: [{ description, status, last_active, started_at }] }` — the window's subagents (Agent tool); `status` is `moving` if its transcript changed in the last three minutes, an estimate |
 | GET | `/app/meter` | `{ backend, model:{id,name}, limits:[{label, used, resets_at}], context:{used_pct}, models:[{id,name}], model_applies, chosen }` — the floating ball in the chat |
 | POST | `/app/model` | `{ model }` — switch the companion's model from the floating ball. Claude Code: typed into the running window, 409 and nothing saved if it isn't idle; `confirmed` says whether the window printed its confirmation |
 | GET | `/app/usage` | `{ five_hour: { used, resets_at }, seven_day: {…} }` — Claude Code usage limits, see `relay/README.md` |
@@ -175,6 +176,14 @@ Once a second companion has joined through the installer, Contacts shows **一�
 See [`docs/listen-netease.md`](docs/listen-netease.md) for playing from your own NetEase Cloud Music account — one account is enough.
 
 ## Clawd
+
+There are two of him. The **thinking crab** sits on the top edge of the chat box and acts out the status line under the
+companion's name: scratching his head while it thinks, typing in a hard hat while a tool runs, holding up a question
+sign while a terminal prompt waits for a yes, asleep when the window isn't open, and hopping when a reply lands.
+Tap him for one bubble with what it's doing and which subagents are busy (`GET /app/agents`, checked every 20 s while
+the chat is open, so the bubble shows at once). Tapping the home Clawd lists busy subagents too. A relay without
+`/app/agents` just gets the status line.
+
 
 The little pixel crab on the home poster greets you by the hour (and in the night voice on the night side),
 offers a few doors, and has a one-line text box. The box stays shut until you give him somewhere to talk:

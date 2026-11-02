@@ -154,7 +154,7 @@
       over.innerHTML = o;
     }
     /* Clawd: tap for a little speech bubble — a greeting, a few doors, and a line to talk to him */
-    var clawd = host.querySelector(".clawd"), bub = host.querySelector(".bub"), talk = [];
+    var clawd = host.querySelector(".clawd"), bub = host.querySelector(".bub"), talk = [], agentTap = 0;
     function place() { var u = host.clientWidth / 100, x = parseFloat(clawd.style.left), y = parseFloat(clawd.style.top);
       bub.style.left = Math.max(4 * u, Math.min(x - 2 * u, host.clientWidth - 66 * u)) + "px"; bub.style.top = Math.max(2 * u, y - bub.offsetHeight - 2 * u) + "px"; }
     function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -171,7 +171,14 @@
         say("me", t); var w = say("him wait", "…"); talk.push({ role: "user", content: t });
         opt.ask(t, side, talk.slice(-12)).then(function (r) { w.classList.remove("wait"); w.textContent = r || "…"; talk.push({ role: "assistant", content: r || "" }); place(); })
           .catch(function () { w.classList.remove("wait"); w.textContent = "Lost my words. Try again?"; talk.pop(); place(); }); };
-      bub.hidden = false; place(); };
+      bub.hidden = false; place();
+      if (opt.agents) { var tap = ++agentTap; opt.agents().then(function (l) {
+        var on = (l || []).filter(function (a) { return a.status === "moving"; });
+        if (tap !== agentTap || bub.hidden || !on.length) return;
+        bub.querySelector(".hi").textContent = on.length === 1 ? "One of me looks busy." : on.length + " of me look busy.";
+        on.slice(0, 3).forEach(function (a) { say("him", a.description || "Something quiet."); });
+        if (on.length > 3) say("him", "And " + (on.length - 3) + " more.");
+      }, function () {}); } };
     bub.addEventListener("click", function (e) { e.stopPropagation(); });
     document.addEventListener("click", function () { bub.hidden = true; });
 

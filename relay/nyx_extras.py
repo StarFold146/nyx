@@ -399,6 +399,34 @@ def register(app, g):
         m["context"] = {"used_pct": round(used * 100 / size, 1), "size": size} if size and used else None
         return m
 
+    # ---- subagents: what the window's Agent-tool helpers are up to (tap the chat crab or the home Clawd) ----
+    # A helper counts as moving if its transcript changed in the last three minutes; an estimate, not a signal.
+    def agents_now():
+        sid = str(live_session_meta(TMUX).get("sessionId") or "")
+        if not re.fullmatch(r"[0-9a-f-]{36}", sid):
+            return []
+        now, out = time.time(), []
+        for meta in (CLAUDE_PROJECT / sid / "subagents").glob("agent-*.meta.json"):
+            log = meta.with_name(meta.name[:-len(".meta.json")] + ".jsonl")
+            try:
+                last = log.stat().st_mtime
+                if now - last > 86400:
+                    continue
+                desc = str(json.loads(meta.read_text()).get("description") or "")[:80]
+                started = meta.stat().st_mtime
+            except (OSError, ValueError):
+                continue
+            out.append({"description": desc, "status": "moving" if now - last < 180 else "stopped",
+                        "last_active": datetime.fromtimestamp(last, timezone.utc).isoformat(),
+                        "started_at": datetime.fromtimestamp(started, timezone.utc).isoformat()})
+        out.sort(key=lambda a: a["last_active"], reverse=True)
+        return out[:20]
+
+    @app.get("/app/agents")
+    async def agents_list(request: Request):
+        check_auth(request)
+        return {"agents": await asyncio.to_thread(agents_now)}
+
     @app.get("/app/meter")
     async def meter_get(request: Request):
         check_auth(request)

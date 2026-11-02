@@ -76,7 +76,7 @@
     var kind = homeKind();
     document.documentElement.dataset.home = kind;
     home = kind === "tree" && window.NyxTree ? NyxTree($("poster"), APPS, openApp, { photo: C.treePhoto })
-      : NyxHome($("poster"), APPS, openApp, C.tagline, { me: C.meName, drawer: openDrawer, ask: C.clawd && C.clawd.path ? askClawd : null });
+      : NyxHome($("poster"), APPS, openApp, C.tagline, { me: C.meName, drawer: openDrawer, ask: C.clawd && C.clawd.path ? askClawd : null, agents: function () { return api("/app/agents").then(function (d) { return d.agents; }); } });
     document.querySelectorAll("#homes button").forEach(function (b) { b.classList.toggle("on", b.dataset.h === kind); });
   }
   document.querySelectorAll("#homes button").forEach(function (b) { b.onclick = function () {
@@ -93,6 +93,8 @@
   /* ---------- relay ---------- */
   function api(path, opt) { return call(RELAY, key, path, opt); }        // the one you're chatting with
   function hapi(path, opt) { return call(HOME, hkey, path, opt); }       // the house: hold sheets
+  /* small door for add-on scripts (thinkcrab.js) to reach the relay you are chatting with */
+  window.NyxChat = Object.assign(window.NyxChat || {}, { api: function (p, o) { return api(p, o); } });
   function call(base, k, path, opt) {
     opt = opt || {}; opt.headers = Object.assign({ "Authorization": "Bearer " + k }, opt.headers || {});
     return fetch(base + path, opt).then(function (r) {

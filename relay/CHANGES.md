@@ -31,6 +31,7 @@ Nyx 其他房间要的接口，每个都可以不装，没装的那个只回 503
 - 小螃蟹 Clawd：`POST /app/clawd`，设了 `ANTHROPIC_API_KEY` 才开
 - 额度 Usage：`GET /app/usage`，读 Claude Code 状态栏存下来的五小时 / 一周用量
 - 仪表 Meter / Model：`GET|POST /app/meter`、`GET|POST /app/model`，悬浮球里的模型、额度、上下文。Claude Code 的模型当场打进窗口（窗口确认了才存），模型和上下文按当前窗口算
+- 分身 Subagents：`GET /app/agents`，当前窗口用 Agent 工具开的分身，`description`、`status`（三分钟内 transcript 有动静算 `moving`，估的）、`last_active`、`started_at`；聊天框上的思考小螃蟹和主屏 Clawd 点一下会列出在忙的
 - 工程板 Board：`GET|POST /app/board`、`POST /app/board/<id>`，AI 用 `relay/board.py`
 - 心脏 Heart：`GET /app/heart`、`GET /app/heart/file`，只读人设、记忆文件夹、后台代码，钥匙打码
 - 窗口 Window：`GET /app/window`、`POST /app/window/{line,compact,new,switch}`、`GET /app/window/list`；压缩线（过线先让 AI 写记忆，安静下来自动压缩）、压缩一下、开新窗口、回到旧窗口。Claude Code 走 tmux，Codex 由 bridge 来取命令（`GET /app/window/cmd`）
