@@ -61,6 +61,22 @@ python3 codex_bridge.py
 
 > Troubleshooting: if Codex's commands fail with `bwrap: ... Operation not permitted` (Ubuntu 24.04 blocks unprivileged user namespaces by default), either run `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0` (persist it in `/etc/sysctl.d/`) and restart the bridge, or set `BRIDGE_SANDBOX=danger-full-access` (no sandbox at all; only on a machine that's yours alone).
 
+## 可选：让 Nyx 里的 Codex 拥有完整权限
+
+前提是已经 `BRIDGE_SANDBOX=danger-full-access`（见上面的变量表和「排障」）。桥以普通用户（比如 `nyx`）跑，默认碰不到 `sudo`，装系统包、改系统服务这类事它做不了。想让它像你电脑上的 Claude Code / Codex 一样什么都能自己来，用 root 登录服务器执行一次（把 `nyx` 换成跑桥的那个用户名）：
+
+```
+echo 'nyx ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nyx && chmod 440 /etc/sudoers.d/nyx && visudo -c
+```
+
+看到 `parsed OK` 就好了，不用重启。验证：在 Nyx 里让它跑 `sudo -n whoami`，回 `root` 就成了。
+
+- **收紧版**：不想全开，就只给几条固定命令免密，比如 `nyx ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart 你的服务, /usr/bin/journalctl -u 你的服务`，比全开安全。
+- **风险**：全开以后，谁能登进你的 Nyx，谁就等于有这台服务器的 root。Nyx 的登录密钥看好，只建议在你一个人用的机器上这么开。
+- **别找错窗口**：ChatGPT 聊天窗口和网页版 Codex（chatgpt.com/codex）都碰不到你的服务器，能动手的只有装在服务器上的这个 Codex。
+
+> Optional full access: with `BRIDGE_SANDBOX=danger-full-access`, run once as root `echo 'nyx ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nyx && chmod 440 /etc/sudoers.d/nyx && visudo -c` (use the bridge's user), then check with `sudo -n whoami` from Nyx. Anyone who can log into your Nyx then has root on that server — only do this on a machine that's yours alone.
+
 ## 许可
 
 GNU AGPL v3，跟 `relay/` 一样（见 `../relay/NOTICE`）。
