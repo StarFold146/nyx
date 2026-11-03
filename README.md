@@ -67,7 +67,7 @@ A working relay ships in [`relay/`](relay/) with its Claude Code channel plugin 
 [Tidal Echo](https://github.com/anhe2021212-spec/Tidal_Echo) by anhe2021212-spec, licensed **GNU AGPL v3** (see `relay/NOTICE`, `relay/CHANGES.md`).
 The web pages here are MIT; they only talk to the relay over HTTP, so you can also point them at a relay of your own.
 
-No Claude? [`bridge/`](bridge/) puts Codex behind the relay with a ChatGPT subscription: one long-lived thread through Codex's official app-server, replies streamed.
+No Claude? [`bridge/`](bridge/) puts Codex behind the relay with a ChatGPT subscription: one long-lived thread through Codex's official app-server, replies streamed. On Ubuntu 24.04, if its commands fail with `bwrap: ... Operation not permitted`, see the troubleshooting section in [`bridge/README.md`](bridge/README.md).
 
 The page expects these endpoints under `config.relay`, all with `Authorization: Bearer <key>`:
 

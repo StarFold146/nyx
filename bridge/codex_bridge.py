@@ -21,6 +21,7 @@ Settings (environment):
                             (default: BRIDGE_DIR/home)
   BRIDGE_PERSONA            optional extra persona file, passed as developer instructions
   BRIDGE_SANDBOX            read-only (default) | workspace-write (Codex may edit files in BRIDGE_CWD)
+                            | danger-full-access (no sandbox; see README troubleshooting)
   BRIDGE_MODEL, BRIDGE_EFFORT   optional model / reasoning effort overrides
   BRIDGE_THINKING           1 = also show Codex's reasoning summary as a thinking bubble (default 1)
   BRIDGE_NUDGE_MIN          if set (minutes), when the chat has been quiet that long, Codex gets a
@@ -59,6 +60,24 @@ IMAGE_TYPES = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".heic")
 
 def log(*a):
     print(time.strftime("%H:%M:%S"), *a, file=sys.stderr, flush=True)
+
+
+# Ubuntu 24.04 blocks unprivileged user namespaces by default, so Codex's bwrap sandbox
+# (read-only / workspace-write) fails before any command runs. Spot it and say how to fix it.
+SANDBOX_HINT = ("（Codex 的沙箱在这台机器上起不来（bwrap），命令都没跑成。修法见 bridge/README.md 的「排障」一节。"
+                " / Codex's sandbox can't start on this machine (bwrap), so no command ran. "
+                "See \"Troubleshooting\" in bridge/README.md.）")
+
+
+def sandbox_broken(text):
+    return "bwrap" in text and any(s in text for s in ("Operation not permitted", "RTM_NEWADDR", "uid map"))
+
+
+def userns_restricted():
+    try:
+        return Path("/proc/sys/kernel/apparmor_restrict_unprivileged_userns").read_text().strip() == "1"
+    except OSError:
+        return False
 
 
 class Codex:
@@ -127,6 +146,7 @@ class Bridge:
         self.chat = None   # "group" while answering a line from the group chat
         self.seen = 0
         self.ctx, self.models, self.model, self.default_model = None, [], MODEL, None
+        self.sandbox_hinted = False
 
     # ---- state: thread id + the last relay message we've handled ----
     def state(self):
@@ -243,6 +263,10 @@ class Bridge:
             await self.out({"type": "thinking_delta", "stream_id": p["itemId"] + ":t", "text": p.get("delta", "")})
         elif method == "item/completed":
             it = p.get("item") or {}
+            if it.get("type") == "commandExecution" and not self.sandbox_hinted and sandbox_broken(json.dumps(it)):
+                self.sandbox_hinted = True   # once per bridge run
+                log("Codex's sandbox can't start on this machine (bwrap). See bridge/README.md, troubleshooting.")
+                await self.out({"type": "reply", "text": SANDBOX_HINT})
             if it.get("type") == "agentMessage":
                 text = it.get("text") or ""
                 if (self.nudging or self.chat == "group") and text.strip() == SILENT:
@@ -417,6 +441,9 @@ class Bridge:
             sys.exit("RELAY_URL and RELAY_SECRET are required")
         (DIR / "inbox").mkdir(parents=True, exist_ok=True)
         CWD.mkdir(parents=True, exist_ok=True)
+        if SANDBOX != "danger-full-access" and userns_restricted():
+            log("warning: kernel.apparmor_restrict_unprivileged_userns=1, Codex's sandbox will likely fail. "
+                "See bridge/README.md, troubleshooting.")
         await self.codex.start()
         await self.open_thread()
         await self.report()

@@ -43,7 +43,7 @@ python3 codex_bridge.py
 |---|---|---|
 | `RELAY_URL` `RELAY_SECRET` | 必填 | 后台地址（同一台机器上就是 `http://127.0.0.1:3011`）和密钥 |
 | `BRIDGE_CWD` | `~/.nyx-bridge/home` | 它待的文件夹，里面的 `AGENTS.md` 就是人设 |
-| `BRIDGE_SANDBOX` | `read-only` | 改成 `workspace-write`，它就能改 `BRIDGE_CWD` 里的文件（比如让它帮你改网页）；别的地方碰不到 |
+| `BRIDGE_SANDBOX` | `read-only` | 改成 `workspace-write`，它就能改 `BRIDGE_CWD` 里的文件（比如让它帮你改网页）；别的地方碰不到；`danger-full-access` 是不搭沙箱，见下面「排障」 |
 | `BRIDGE_PERSONA` | 空 | 另一份人设文件，作为开发者指令塞进去 |
 | `BRIDGE_MODEL` `BRIDGE_EFFORT` | 空 | 换模型、换推理强度 |
 | `BRIDGE_THINKING` | `1` | 显示推理摘要气泡，`0` 关掉 |
@@ -51,6 +51,15 @@ python3 codex_bridge.py
 | `BRIDGE_DIR` | `~/.nyx-bridge` | 存对话串 id 和收到的图片 |
 
 一个 `BRIDGE_DIR` 只能跑一座桥。桥记着对话串和处理到哪一条，重启以后接着上次那串、也不会把旧消息再答一遍。想换一条新对话：删掉 `BRIDGE_DIR/state.json` 再重启。
+
+## 排障：bwrap / Operation not permitted
+
+它说命令跑不了，报错像 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`：Codex 每跑一条命令都要先用 bwrap 搭个沙箱，Ubuntu 24.04 默认不让普通用户这么搭（`kernel.apparmor_restrict_unprivileged_userns=1`），所以命令还没开始就失败了。跟你给它的权限无关。桥看到这个错会在聊天里提醒一次，启动时也会在日志里先警告。两种修法，挑一种：
+
+- **放开这条限制（推荐）**：`sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0`，想重启后也生效就再写一份 `echo 'kernel.apparmor_restrict_unprivileged_userns=0' | sudo tee /etc/sysctl.d/60-userns.conf`。然后重启桥。沙箱照常工作，`read-only` / `workspace-write` 的边界还在。
+- **不用沙箱**：`BRIDGE_SANDBOX=danger-full-access`，再重启桥。Codex 能读写整台机器，只建议在你一个人用、没有别的要紧东西的服务器上这么开。
+
+> Troubleshooting: if Codex's commands fail with `bwrap: ... Operation not permitted` (Ubuntu 24.04 blocks unprivileged user namespaces by default), either run `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0` (persist it in `/etc/sysctl.d/`) and restart the bridge, or set `BRIDGE_SANDBOX=danger-full-access` (no sandbox at all; only on a machine that's yours alone).
 
 ## 许可
 
