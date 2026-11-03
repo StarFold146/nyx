@@ -387,7 +387,7 @@ button{ font:inherit; color:inherit; background:none; border:0; padding:0; curso
 :root[data-home="tree"] .title{ color:#FBF7F2; text-shadow:0 0 2px rgba(0,0,0,.8), 0 0 8px rgba(0,0,0,.55), 0 0 16px rgba(0,0,0,.35); }
 
 /* ---------- delivery mark, local delete, long-press menu ---------- */
-.msg .t .mark{ display:inline-block; width:.95em; height:.95em; margin-left:4px; vertical-align:-.12em; color:var(--faint); }
+.msg .t .mark{ display:inline-block; width:.95em; height:.95em; margin:0 0 0 4px; vertical-align:-.12em; color:var(--faint); background:none; animation:none; }   /* the splash .mark (star.svg, 64px, margin-bottom 20px, breathing) shares the class name: undo it here, or it paints a little star and props the last line open */
 .msg .t .mark svg{ width:100%; height:100%; display:block; fill:currentColor; }
 .msg .t .mark.wait svg{ fill:none; stroke:currentColor; stroke-width:1.3; animation:markWait 1.4s ease-in-out infinite; }
 @keyframes markWait{ 50%{ opacity:.35; transform:scale(.8); } }
