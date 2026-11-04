@@ -3,10 +3,10 @@
 手机上的 Nyx 页面和服务器上的 AI 之间传话的那一层，加上 Claude Code 那头的 channel 插件（在 `../channel`）。
 
 **出处**：这一层是 [Tidal Echo](https://github.com/anhe2021212-spec/Tidal_Echo)（作者 anhe2021212-spec）的修改版。原作者已经停更，我们接着维护，改了哪些写在 [CHANGES.md](CHANGES.md)。
-这一层按原作者的许可走 **GNU AGPL v3**（见 [LICENSE](LICENSE)、[NOTICE](NOTICE)）；仓库根目录的 Nyx 网页是另外一块，MIT。
+这一层按原作者的许可走 **GNU AGPL v3**（见 [LICENSE](LICENSE)、[NOTICE](NOTICE)）；仓库根目录的 Nyx 网页是另外一块，署名-非商业性使用 4.0（CC BY-NC 4.0，见根目录 LICENSE）。
 
 > The relay and channel plugin are a modified version of Tidal Echo by anhe2021212-spec, licensed GNU AGPL v3.
-> The Nyx web pages in the repository root are separate MIT-licensed work.
+> The Nyx web pages in the repository root are separate work under CC BY-NC 4.0 (see the root LICENSE).
 
 ## 里面有什么
 

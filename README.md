@@ -65,7 +65,7 @@ and nothing more. How much of each it leans into is up to the model and its own 
 
 A working relay ships in [`relay/`](relay/) with its Claude Code channel plugin in [`channel/`](channel/): a modified version of
 [Tidal Echo](https://github.com/anhe2021212-spec/Tidal_Echo) by anhe2021212-spec, licensed **GNU AGPL v3** (see `relay/NOTICE`, `relay/CHANGES.md`).
-The web pages here are MIT; they only talk to the relay over HTTP, so you can also point them at a relay of your own.
+The web pages here are CC BY-NC 4.0 (see LICENSE); they only talk to the relay over HTTP, so you can also point them at a relay of your own.
 
 No Claude? [`bridge/`](bridge/) puts Codex behind the relay with a ChatGPT subscription: one long-lived thread through Codex's official app-server, replies streamed. On Ubuntu 24.04, if its commands fail with `bwrap: ... Operation not permitted`, see the troubleshooting section in [`bridge/README.md`](bridge/README.md).
 
@@ -259,5 +259,7 @@ Ask your companion for them in your own chat; it knows your relay better than we
 
 ## License
 
-The web pages: MIT, see [LICENSE](LICENSE). `relay/` and `channel/`: GNU AGPL v3, a modified version of Tidal Echo — see `relay/NOTICE`.
+The web pages: [CC BY-NC 4.0](LICENSE) (Attribution-NonCommercial 4.0 International) — noncommercial use only, credit StarFold146 with a link to this repo; commercial use needs written permission from StarFold146. Versions up to and including commit 78db25a were released under MIT and stay MIT. `relay/` and `channel/`: GNU AGPL v3, a modified version of Tidal Echo — see `relay/NOTICE`.
+
+> 协议：网页部分采用 署名-非商业性使用 4.0（CC BY-NC 4.0），只能非商业使用，要署名 StarFold146 并附仓库链接；商用需要 StarFold146 书面许可。78db25a 及之前的版本仍是 MIT。relay/ 和 channel/ 仍是 GNU AGPL v3。
 `assets/waternormals.jpg` is from the three.js examples (MIT, © three.js authors); three.js itself is loaded from jsDelivr.
