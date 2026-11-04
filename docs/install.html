@@ -73,8 +73,9 @@ pre{margin:6px 0 0;background:var(--code);color:var(--codeink);border-radius:10p
 <button class="cp">复制</button><pre>cd ~/companion && claude</pre>
 <div class="note">按提示用你的 Claude 账号登录，登完输 <b>/exit</b> 回车退出。</div>
 <div class="see"><b>选了 codex 的：</b></div>
+<div class="note"><b>先做这一步，不然登录会卡住不报错：</b>在电脑或手机浏览器打开 chatgpt.com → 设置 → 安全（Security），打开「Codex 设备码登录 / device code authorization」那个开关。用的是团队/公司账号的，要管理员在工作区权限里开。（按钮名字各版本写法不太一样，找带 device code 的那个。）<br>First: chatgpt.com → Settings → Security → turn on device code authorization for Codex (workspace accounts: an admin enables it).</div>
 <button class="cp">复制</button><pre>codex login --device-auth</pre>
-<div class="note">它会给一个链接和一串码：手机打开链接，登 ChatGPT 账号，输那串码。</div></div>
+<div class="note">它会给一个链接和一串码：手机打开链接，登 ChatGPT 账号，输那串码（码大约 15 分钟过期，过期就再跑一遍这行）。</div></div>
 
 <div class="step"><span class="n">6</span><span class="t">叫醒它</span>
 <span class="en">Start the companion and check it's running.</span>
