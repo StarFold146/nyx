@@ -108,6 +108,7 @@ At the bottom of the gauge (the floating ball → Gauge, under the model list) t
 - Stored in `agent-keys.env` next to the relay's database, mode 600 (`RELAY_KEYS_FILE` to move it). Never logged, never sent back to the page. Names that would change the shell or the agent (`PATH`, `LD_*`, `ANTHROPIC_*`, `GIT_*`, proxies…) are refused.
 - Claude Code: `channel/start-channel.sh` tells the window the file's path when `NYX_KEYS_FILE` is set (the relay sets it; for boot, add `Environment=NYX_KEYS_FILE=/path/to/relay/agent-keys.env` to your systemd unit).
 - Codex: the bridge copies the keys from `GET /channel/keys` (same machine only, straight to the relay port; keep `RELAY_URL=http://127.0.0.1:…`) into its own `BRIDGE_DIR/keys.env` (600) every half minute and tells Codex that path.
+- Codex sandbox: with the default `BRIDGE_SANDBOX=read-only`, Codex can read the keys file but its commands may have no network, so a key that calls an API might not work until you use `workspace-write` or `danger-full-access`. Not tested yet; reports welcome.
 
 > 密钥：在聊天页悬浮球 → Gauge 最底下的 keys 里填一个给自己看的备注（比如「Gemini 免费那把」，随时能改）、名字（比如 `GEMINI_API_KEY`）和值。存在服务器上、权限 600，存完页面上再也看不到值。它只知道文件在哪，要用的时候在那一条命令里自己取（`set -a; . 文件; set +a; 命令 … $NAME`），值不进聊天、不上命令行，也不会因为在对话里要密码被拦；改了密钥不用重启（开机启动的话给 systemd 单元加一行 `Environment=NYX_KEYS_FILE=…`）。
 
