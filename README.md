@@ -16,6 +16,8 @@ On a fresh Ubuntu server (22.04 / 24.04), as your normal user:
 curl -fsSL https://raw.githubusercontent.com/StarFold146/nyx/master/install.sh | bash
 ```
 
+> 第一次装、不熟命令行：照着 [docs/install.html](https://htmlpreview.github.io/?https://github.com/StarFold146/nyx/blob/master/docs/install.html) 一步步点复制就行（下载下来用浏览器打开也可以）。New to the terminal? Follow `docs/install.html` step by step.
+
 It asks whether Claude (your Claude subscription, through Claude Code) or Codex (your ChatGPT subscription) answers,
 sets up the relay, the pages and HTTPS on `<your-ip>.sslip.io`, and prints your address and key.
 New to servers? Start with [docs/新手上路.md](docs/新手上路.md).

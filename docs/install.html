@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nyx 安装步骤</title>
+<style>
+:root{--bg:#f4f1ea;--card:#fffdf8;--ink:#2a2724;--sub:#7a736a;--line:#e3ddd2;--code:#1f2328;--codeink:#e8e4dc;--acc:#3b5d8f;--warn:#9a5b2e}
+@media (prefers-color-scheme:dark){:root{--bg:#15171b;--card:#1d2026;--ink:#e6e2da;--sub:#9a958c;--line:#2c3038;--code:#0e1013;--codeink:#e8e4dc;--acc:#8fb0e0;--warn:#d9a070}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"PingFang SC",sans-serif}
+main{max-width:640px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:22px;margin:0 0 4px;font-weight:600}
+h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:600;letter-spacing:.04em}
+.lead{color:var(--sub);margin:0 0 20px;font-size:14px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;margin:0 0 14px}
+.opt{border-style:dashed}
+.n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:13px;font-weight:600;margin-right:8px}
+.opt .n{background:none;color:var(--acc);border:1px solid var(--acc)}
+.t{font-weight:600}
+.en{display:block;color:var(--sub);font-size:12.5px;line-height:1.5;margin-top:2px}
+.see{color:var(--sub);font-size:14px;margin:8px 0 6px}
+.see b{color:var(--ink);font-weight:600}
+pre{margin:6px 0 0;background:var(--code);color:var(--codeink);border-radius:10px;padding:12px;overflow-x:auto;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.cp{all:unset;cursor:pointer;float:right;font-size:12px;color:var(--acc);border:1px solid var(--acc);border-radius:20px;padding:2px 10px;margin-top:-2px}
+.cp.ok{background:var(--acc);color:#fff}
+.note{font-size:13px;color:var(--sub);margin-top:8px}
+.warn{font-size:13px;color:var(--warn);margin-top:8px}
+.three{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 14px;font-size:14px}
+.three div{padding:6px 0;border-bottom:1px solid var(--line)}
+.three div:last-child{border-bottom:0}
+.three b{display:inline-block;min-width:7.5em}
+</style></head><body><main>
+<h1>装一个自己的 Nyx</h1>
+<p class="lead">每一步：复制、粘贴、回车，看到什么就对一下下面写的。对不上就截图问人。<span class="en">Copy, paste, Enter, compare with what's written. If it doesn't match, screenshot and ask.</span></p>
+
+<h2>先分清三样东西</h2>
+<div class="three">
+<div><b>ChatGPT 聊天窗口</b>只会聊天，碰不到你的服务器。</div>
+<div><b>网页版 / 手机 app 里的 Codex</b>在 OpenAI 的云上干活，改的是 GitHub 仓库，也碰不到你的服务器。</div>
+<div><b>Nyx 里的 Codex</b>装在你自己服务器上的那个，只有它能动你的机器。下面装的就是它。</div>
+<span class="en">ChatGPT chat and web/app Codex can't reach your server. Only the Codex installed inside Nyx, on your own server, can.</span>
+</div>
+
+<h2>装</h2>
+
+<div class="step"><span class="n">1</span><span class="t">准备一台服务器</span>
+<span class="en">A VPS running Ubuntu 22.04 or 24.04.</span>
+<div class="see">租一台云服务器（VPS），系统选 <b>Ubuntu 22.04</b> 或 <b>24.04</b>。记下它给你的 <b>IP 地址</b>和 <b>root 密码</b>。</div></div>
+
+<div class="step"><span class="n">2</span><span class="t">从电脑登上服务器</span>
+<span class="en">Windows: PowerShell. Mac: Terminal. Replace the IP with yours.</span>
+<div class="see">Windows 打开 <b>PowerShell</b>，Mac 打开<b>「终端」</b>。复制这行，把 <b>你的服务器IP</b> 换成自己的，回车：</div>
+<button class="cp">复制</button><pre>ssh root@你的服务器IP</pre>
+<div class="note">问 yes/no 就输 yes；问 password 就粘 root 密码回车（输密码时屏幕上不显示字，是正常的）。</div>
+<div class="see">你会看到：一行以 <b>root@</b> 开头、末尾是 <b>#</b> 的提示符。</div></div>
+
+<div class="step"><span class="n">3</span><span class="t">建一个普通用户</span>
+<span class="en">The installer refuses to run as root. Make a normal user with sudo.</span>
+<div class="see">安装脚本不让用 root 跑，所以先建一个叫 nyx 的用户：</div>
+<button class="cp">复制</button><pre>adduser nyx && usermod -aG sudo nyx && su - nyx</pre>
+<div class="note">它会让你给 nyx 设一个密码（输两遍，同样不显示），后面问名字电话之类的一路回车跳过。</div>
+<div class="see">你会看到：提示符变成 <b>nyx@…:~$</b>。之后每一步都在这里做。</div></div>
+
+<div class="step"><span class="n">4</span><span class="t">一行安装</span>
+<span class="en">Run the installer. It asks three questions.</span>
+<button class="cp">复制</button><pre>curl -fsSL https://raw.githubusercontent.com/StarFold146/nyx/master/install.sh | bash</pre>
+<div class="see">它会问三件事：</div>
+<div class="note">① <b>Who answers — claude or codex?</b> 用 Claude 订阅就输 claude，用 ChatGPT 订阅就输 codex。<br>② <b>Your companion's name?</b> 给它起的名字。<br>③ <b>Your name?</b> 你自己的名字。<br>中间要密码就输第 3 步给 nyx 设的那个。</div>
+<div class="see">你会看到：<b>== 1/7</b> 一直走到 <b>== 7/7 Starting</b>，最后一个框写着 <b>Nyx is installed.</b>，里面有 <b>Address</b>（网址）和 <b>Key</b>（钥匙）。</div>
+<div class="warn">把 Address 和 Key 抄下来。Key 只有你能看，别发给别人。</div></div>
+
+<div class="step"><span class="n">5</span><span class="t">登录它的大脑</span>
+<span class="en">Log in to Claude Code or Codex with your subscription.</span>
+<div class="see"><b>选了 claude 的：</b></div>
+<button class="cp">复制</button><pre>cd ~/companion && claude</pre>
+<div class="note">按提示用你的 Claude 账号登录，登完输 <b>/exit</b> 回车退出。</div>
+<div class="see"><b>选了 codex 的：</b></div>
+<button class="cp">复制</button><pre>codex login --device-auth</pre>
+<div class="note">它会给一个链接和一串码：手机打开链接，登 ChatGPT 账号，输那串码。</div></div>
+
+<div class="step"><span class="n">6</span><span class="t">叫醒它</span>
+<span class="en">Start the companion and check it's running.</span>
+<button class="cp">复制</button><pre>sudo systemctl start nyx-companion && systemctl status nyx-companion --no-pager | head -5</pre>
+<div class="see">你会看到：<b>active (running)</b>。</div>
+<div class="note">看到 failed 或红字：截图问人。</div></div>
+
+<div class="step"><span class="n">7</span><span class="t">手机上打开</span>
+<span class="en">Open the Address on your phone, enter the Key, add to home screen.</span>
+<div class="see">手机浏览器打开第 4 步的 <b>Address</b>，输入 <b>Key</b>。</div>
+<div class="note">iPhone：Safari 底下分享 → 添加到主屏幕。安卓 Chrome：右上 ⋮ → 安装应用。以后从桌面图标点开。</div></div>
+
+<h2>可选</h2>
+
+<div class="step opt"><span class="n">A</span><span class="t">让 Nyx 里的 Codex 什么都能自己干</span>
+<span class="en">Codex only: full access. Anyone who can log into your Nyx then has root on this server.</span>
+<div class="see">只给 codex 用。默认它在只读沙盒里，装东西、改系统都做不了。在服务器上（nyx 用户下）粘这段：</div>
+<button class="cp">复制</button><pre>echo 'BRIDGE_SANDBOX=danger-full-access' >> ~/nyx/relay/relay.env && echo 'nyx ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/nyx >/dev/null && sudo chmod 440 /etc/sudoers.d/nyx && sudo visudo -c && sudo systemctl restart nyx-companion</pre>
+<div class="see">你会看到：<b>parsed OK</b>。然后回 Nyx 跟它说：</div>
+<button class="cp">复制</button><pre>运行 sudo -n whoami，告诉我结果。</pre>
+<div class="note">它回 <b>root</b> 就成了。</div>
+<div class="warn">这等于谁登进你的 Nyx，谁就有这台服务器的全部权限。只在你一个人用的机器上开，Key 守好。</div></div>
+
+<div class="step opt"><span class="n">B</span><span class="t">给它 API key，不用贴进聊天</span>
+<span class="en">Floating ball → Gauge → keys at the bottom.</span>
+<div class="see">聊天页点悬浮球 → <b>仪表 Gauge</b> → 拉到最底下 <b>keys / 密钥</b>，填一个备注、名字（比如 GEMINI_API_KEY）和值。</div>
+<div class="note">存完只显示备注和最后四位。它用的时候按名字取，key 不进聊天，也不会因为在对话里要密码被拦。这里只列从这儿填进去的，装的时候写在设置文件里的那些不显示。</div></div>
+
+<p class="note">这份步骤照着 install.sh 和 README 写的，还没在一台全新的服务器上从头到尾实测过。哪一步对不上，告诉作者。<span class="en">Written from install.sh and the README; not yet run end to end on a clean server. Report anything that doesn't match.</span></p>
+</main>
+<script>
+document.querySelectorAll('.cp').forEach(function(b){b.onclick=function(){var t=b.nextElementSibling.textContent;
+var ok=function(){b.textContent='已复制';b.classList.add('ok');setTimeout(function(){b.textContent='复制';b.classList.remove('ok')},1500)};
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){fb(t);ok()})}else{fb(t);ok()}}});
+function fb(t){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}
+</script>
+</body></html>
