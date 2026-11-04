@@ -80,6 +80,19 @@
         <div class="acts"><button type="button" id="mCompact">Compact now</button><button type="button" id="mNew">New window</button><button type="button" id="mWins">Windows</button></div>
         <p class="hint" id="mWinNote"></p>
       </div>
+      <div class="keys" id="mKeys" hidden>
+        <button type="button" class="kh" id="mKeysOpen" aria-expanded="false"><span>keys</span><em id="mKeysCount"></em></button>
+        <div class="kb" id="mKeysBody" hidden>
+          <div id="mKeyList"></div>
+          <form id="mKeyForm" autocomplete="off">
+            <input id="mKeyLabel" placeholder="label, e.g. Gemini, the free one" spellcheck="false" aria-label="Label (for you)">
+            <input id="mKeyName" placeholder="NAME" spellcheck="false" autocapitalize="characters" aria-label="Key name">
+            <input id="mKeyVal" type="password" placeholder="value" spellcheck="false" autocomplete="new-password" aria-label="Key value">
+            <button type="submit">Save</button>
+          </form>
+          <p class="hint" id="mKeyNote">Saved on the server, never shown again. The companion knows where they are and loads one inside the command that needs it, so no key goes through the chat. / 存在服务器上，存完不再显示。它知道放在哪，要用的那条命令里自己取，密钥不经过聊天。</p>
+        </div>
+      </div>
     </div>
   </div>
 

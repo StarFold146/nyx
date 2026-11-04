@@ -677,7 +677,47 @@
     if (!key || GROUP) return Promise.resolve();
     return api("/app/meter").then(function (d) { meterData = d; paintOrb(); if (!$("meter").hidden) { paintMeter(); paintWin(); } }).catch(function () { meterData = null; paintOrb(); });
   }
-  function openMeter() { paintMeter(); paintWin(); $("meter").hidden = false; loadMeter(); loadWin(); }
+  /* keys for the companion's environment (relay/nyx_keys.py): a value goes in once and never comes back to the page */
+  var KEY_HINT = $("mKeyNote").textContent;
+  function keyNote(t) { $("mKeyNote").textContent = t || KEY_HINT; }
+  function paintKeys(d) {
+    var ks = (d && d.keys) || [];
+    $("mKeys").hidden = !d;
+    $("mKeysCount").textContent = ks.length ? ks.length + " saved" : "none";
+    $("mKeyList").innerHTML = ks.map(function (k) {
+      return '<div class="k"><span><em>' + esc(k.label || "(no label)") + "</em><b>" + esc(k.name) + " <i>" + esc(k.tail) + "</i></b></span>" +
+        '<button type="button" data-lab="' + esc(k.name) + '">label</button><button type="button" data-del="' + esc(k.name) + '">remove</button></div>';
+    }).join("");
+  }
+  function loadKeys() { if (!key || GROUP) return; api("/app/keys").then(paintKeys).catch(function () { paintKeys(null); }); }
+  function keysPost(path, body, done) {
+    keyNote("\u2026");
+    return api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (d) { paintKeys(d); keyNote(done); })
+      .catch(function (e) { keyNote(/400/.test(e.message) ? "Name: capital letters, digits and _ (like GEMINI_API_KEY); the value on one line." : "Didn't save: " + e.message); });
+  }
+  $("mKeysOpen").onclick = function () {
+    var open = $("mKeysBody").hidden; $("mKeysBody").hidden = !open; this.setAttribute("aria-expanded", String(open)); if (open) keyNote();
+  };
+  $("mKeyForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("mKeyName").value.trim().toUpperCase(), value = $("mKeyVal").value.trim(), label = $("mKeyLabel").value.trim();
+    if (!name || !value) return keyNote("Fill in the name and the key; the label is just for you.");
+    $("mKeyVal").value = "";
+    keysPost("/app/keys", { name: name, value: value, label: label }, "Saved " + name + ". It can use it from its next command.")
+      .then(function () { $("mKeyName").value = ""; $("mKeyLabel").value = ""; });
+  });
+  $("mKeyList").addEventListener("click", function (e) {
+    var l = e.target.closest("button[data-lab]");
+    if (l) {
+      var cur = l.closest(".k").querySelector("em").textContent, t = prompt("Label for " + l.dataset.lab + " (just for you):", cur === "(no label)" ? "" : cur);
+      if (t != null) keysPost("/app/keys", { name: l.dataset.lab, label: t }, "Label saved.");
+      return;
+    }
+    var b = e.target.closest("button[data-del]"); if (!b || !confirm("Remove " + b.dataset.del + "?")) return;
+    keysPost("/app/keys/delete", { name: b.dataset.del }, "Removed " + b.dataset.del + ".");
+  });
+  function openMeter() { paintMeter(); paintWin(); $("meter").hidden = false; loadMeter(); loadWin(); loadKeys(); }
   function closeMeter() { $("meter").hidden = true; }
   $("meter").addEventListener("click", function (e) { if (e.target === $("meter")) closeMeter(); });
   $("mList").addEventListener("click", function (e) {

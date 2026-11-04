@@ -97,8 +97,19 @@ Optional, for the other rooms:
 | GET | `/app/heart`, `/app/heart/file?path=` | read-only: `~/companion/CLAUDE.md` or `AGENTS.md`, `~/companion/memory/*.md`, the relay code; keys are blanked |
 | GET/POST | `/app/window`, `/app/window/{line,compact,new,switch}`, `/app/window/list` | the gauge's lower half: the context line (past it the AI saves to memory, then the window compacts), compact now, a new window, old windows. Claude Code through tmux; Codex through the bridge (`/app/window/cmd`) |
 | GET/POST | `/app/kitchen`, `/app/kitchen/{pantry,ask,recipe,photo,photo/comment,log,cooked}` | the Kitchen: pantry, recipes the AI writes, photos of what you made, a timeline of meals |
+| GET/POST | `/app/keys`, `/app/keys/delete` | the bottom of the gauge: API keys for the companion's environment. Values go in and never come back (the list shows your label, the name and the last four characters); see **Keys** below |
 
 `picks` is a list of who marked a picture; anything non-empty shows a small star (handy if your companion can mark things it likes).
+
+### Keys
+
+At the bottom of the gauge (the floating ball → Gauge, under the model list) there's a **keys** row. Add a label for yourself (e.g. "Gemini, the free one"), a `NAME` like `GEMINI_API_KEY` and the value. The companion is told where the file is and loads it inside the one command that needs a key (`set -a; . <file>; set +a; cmd … $NAME`), so you never paste a key into the chat, models that refuse to handle a password in conversation (some get the whole thread blocked) don't have to, and a changed key needs no restart.
+
+- Stored in `agent-keys.env` next to the relay's database, mode 600 (`RELAY_KEYS_FILE` to move it). Never logged, never sent back to the page. Names that would change the shell or the agent (`PATH`, `LD_*`, `ANTHROPIC_*`, `GIT_*`, proxies…) are refused.
+- Claude Code: `channel/start-channel.sh` tells the window the file's path when `NYX_KEYS_FILE` is set (the relay sets it; for boot, add `Environment=NYX_KEYS_FILE=/path/to/relay/agent-keys.env` to your systemd unit).
+- Codex: the bridge copies the keys from `GET /channel/keys` (same machine only, straight to the relay port; keep `RELAY_URL=http://127.0.0.1:…`) into its own `BRIDGE_DIR/keys.env` (600) every half minute and tells Codex that path.
+
+> 密钥：在聊天页悬浮球 → Gauge 最底下的 keys 里填一个给自己看的备注（比如「Gemini 免费那把」，随时能改）、名字（比如 `GEMINI_API_KEY`）和值。存在服务器上、权限 600，存完页面上再也看不到值。它只知道文件在哪，要用的时候在那一条命令里自己取（`set -a; . 文件; set +a; 命令 … $NAME`），值不进聊天、不上命令行，也不会因为在对话里要密码被拦；改了密钥不用重启（开机启动的话给 systemd 单元加一行 `Environment=NYX_KEYS_FILE=…`）。
 
 ## Town
 

@@ -28,12 +28,17 @@ Settings (environment):
                             chance to say something first; it can stay silent
   RELAY_HUMAN_NAME          how the bridge refers to you in those nudges (default: "they")
 
+Keys: API keys saved from the chat page's gauge (relay/nyx_keys.py). The bridge copies them from the relay's
+GET /channel/keys (same machine only, RELAY_URL on 127.0.0.1) into BRIDGE_DIR/keys.env (600) every half minute and
+tells Codex to load that file inside the one command that needs a key. Nothing restarts; values never reach the chat.
+
 Part of the Nyx relay (a modified version of Tidal Echo), GNU AGPL v3.
 """
 import asyncio
 import itertools
 import json
 import os
+import shlex
 import sys
 import time
 from datetime import datetime, timezone
@@ -53,6 +58,7 @@ EFFORT = os.environ.get("BRIDGE_EFFORT") or None
 THINKING = os.environ.get("BRIDGE_THINKING", "1") == "1"
 NUDGE_MIN = float(os.environ.get("BRIDGE_NUDGE_MIN") or 0)
 HUMAN = os.environ.get("RELAY_HUMAN_NAME", "they")
+KEYS_COPY = DIR / "keys.env"   # the bridge's own copy of the keys from the gauge (600)
 SILENT = "<quiet>"
 AUTH = {"Authorization": f"Bearer {SECRET}"}
 IMAGE_TYPES = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".heic")
@@ -147,6 +153,7 @@ class Bridge:
         self.seen = 0
         self.ctx, self.models, self.model, self.default_model = None, [], MODEL, None
         self.sandbox_hinted = False
+        self.keys_version, self.keys_warned = None, False
 
     # ---- state: thread id + the last relay message we've handled ----
     def state(self):
@@ -211,12 +218,59 @@ class Bridge:
             dst.write_bytes(r.content)
         return dst
 
+    # ---- keys: set from the gauge, handed to codex app-server as environment variables (relay/nyx_keys.py) ----
+    async def fetch_keys(self):
+        """(version, {name: value}) from the relay, or (None, None) if it can't be read right now."""
+        try:
+            r = await self.http.get(f"{RELAY}/channel/keys", headers=AUTH)
+        except Exception:
+            return None, None
+        if r.status_code == 404:
+            return None, None    # an older relay without keys
+        if r.status_code != 200:
+            if not self.keys_warned:
+                self.keys_warned = True
+                log(f"keys: the relay said {r.status_code}; keys from the gauge only reach a bridge on the same machine "
+                    "(RELAY_URL=http://127.0.0.1:...)")
+            return None, None
+        d = r.json() or {}
+        return str(d.get("version") or ""), {k: str(v) for k, v in (d.get("keys") or {}).items()}
+
+    def keys_note(self):
+        f = shlex.quote(str(KEYS_COPY))
+        return (f"API keys the user saved from the app are in {KEYS_COPY} (NAME='value' lines; it may change while you run). "
+                f"When a command needs one, load the file inside that same command: set -a; . {f}; set +a; your-command ... $NAME. "
+                f"To see which names exist: grep -oE '^[A-Z_][A-Z0-9_]*' {f}. Never print, echo, cat or log the values, "
+                "and never paste them into the chat.")
+
+    async def sync_keys(self):
+        """Keep BRIDGE_DIR/keys.env (600) the same as the relay's keys. Nothing restarts: Codex loads it when it needs it."""
+        ver, keys = await self.fetch_keys()
+        if ver is None or ver == self.keys_version:
+            return
+        tmp = KEYS_COPY.with_name(KEYS_COPY.name + ".tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            for k in sorted(keys):
+                f.write(f"{k}={shlex.quote(keys[k])}\n")
+        tmp.replace(KEYS_COPY)
+        self.keys_version = ver
+        log("keys:", len(keys), "saved for Codex")
+
+    async def keys_poller(self):
+        while True:
+            await asyncio.sleep(30)
+            await self.sync_keys()
+
     # ---- codex side ----
     async def open_thread(self):
         acct = await self.codex.call("account/read", {})
         if not (acct or {}).get("account"):
             log("Codex isn't logged in. Run:  codex login --device-auth")
         persona = Path(PERSONA).read_text(encoding="utf-8") if PERSONA else None
+        if self.keys_version is not None:
+            note = self.keys_note()
+            persona = (persona + "\n\n" + note) if persona else note
         opts = {"cwd": str(CWD), "sandbox": SANDBOX, "approvalPolicy": "never",
                 "developerInstructions": persona, "model": MODEL}
         tid = self.state().get("threadId")
@@ -444,10 +498,11 @@ class Bridge:
         if SANDBOX != "danger-full-access" and userns_restricted():
             log("warning: kernel.apparmor_restrict_unprivileged_userns=1, Codex's sandbox will likely fail. "
                 "See bridge/README.md, troubleshooting.")
+        await self.sync_keys()
         await self.codex.start()
         await self.open_thread()
         await self.report()
-        await asyncio.gather(self.listen_relay(), self.worker(), self.nudger(), self.cmd_poller())
+        await asyncio.gather(self.listen_relay(), self.worker(), self.nudger(), self.cmd_poller(), self.keys_poller())
 
 
 if __name__ == "__main__":

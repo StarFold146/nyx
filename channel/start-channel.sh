@@ -13,8 +13,17 @@ S=$1; DIR=$2; CFG=$3; MODEL=${4:-}
 M=""; [ -n "$MODEL" ] && M="--model $MODEL"
 # NYX_RESUME=<session id> goes back to an old window (the relay sets it when you pick one in the gauge)
 R=""; [ -n "${NYX_RESUME:-}" ] && R="--resume $(tr -cd 'A-Za-z0-9-' <<<"$NYX_RESUME")"
+# NYX_KEYS_FILE = the relay's agent-keys.env (keys set from the gauge). The window is told where it is and to load it
+# inside the one command that needs a key, so values never reach the chat, a command line or its output, and a changed
+# key needs no restart. The relay sets it for New window; for boot, add
+#   Environment=NYX_KEYS_FILE=/path/to/relay/agent-keys.env   to the systemd unit.
+P=""
+if [ -n "${NYX_KEYS_FILE:-}" ]; then
+  KQ=$(printf %q "$NYX_KEYS_FILE")
+  P="--append-system-prompt $(printf %q "API keys the user saved from the app are in $NYX_KEYS_FILE (NAME='value' lines; it may change while you run). When a command needs one, load the file inside that same command: set -a; . $KQ; set +a; your-command ... \$NAME. To see which names exist: grep -oE '^[A-Z_][A-Z0-9_]*' $KQ. Never print, echo, cat or log the values, and never paste them into the chat.")"
+fi
 cd "$DIR" || exit 1
-tmux new-session -d -s "$S" -x 200 -y 50 "claude --dangerously-load-development-channels server:companion --mcp-config $CFG --permission-mode auto $M $R" || exit 1
+tmux new-session -d -s "$S" -x 200 -y 50 "claude --dangerously-load-development-channels server:companion --mcp-config $CFG --permission-mode auto $M $R $P" || exit 1
 for i in $(seq 1 30); do
   sleep 2
   pane=$(tmux capture-pane -pt "$S" 2>/dev/null) || exit 1

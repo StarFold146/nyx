@@ -77,6 +77,12 @@ echo 'nyx ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nyx && chmod 440 /etc/sudoers
 
 > Optional full access: with `BRIDGE_SANDBOX=danger-full-access`, run once as root `echo 'nyx ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nyx && chmod 440 /etc/sudoers.d/nyx && visudo -c` (use the bridge's user), then check with `sudo -n whoami` from Nyx. Anyone who can log into your Nyx then has root on that server — only do this on a machine that's yours alone.
 
+## 密钥：别在聊天里给它密码
+
+要它用 API key、密码这类东西（比如给 Ombre 配 Gemini key），别在对话里贴，也别问它「密码是什么」，有的模型一碰到就拒绝，甚至整串对话被拦。去聊天页悬浮球 → Gauge，拉到最底下的 keys，填备注、名字和值。桥半分钟内把它们抄进自己目录下的 `keys.env`（600），告诉 Codex 文件在哪：要用的那条命令里自己 `set -a; . 文件; set +a` 再用 `$NAME`，不打印、不重启。前提是桥和中继在同一台机器、`RELAY_URL` 用 `127.0.0.1`。
+
+> Keys: put API keys in the gauge's keys row (floating ball → Gauge, at the bottom) instead of the chat. The bridge copies them from the relay (same machine only, `RELAY_URL=http://127.0.0.1:…`) into `BRIDGE_DIR/keys.env` (600) and tells Codex to load that file inside the one command that needs a key. Nothing restarts; values never reach the chat.
+
 ## 许可
 
 GNU AGPL v3，跟 `relay/` 一样（见 `../relay/NOTICE`）。

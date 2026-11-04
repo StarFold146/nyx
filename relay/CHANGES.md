@@ -43,3 +43,7 @@ Nyx 其他房间要的接口，每个都可以不装，没装的那个只回 503
 ## `bridge/`（新增）
 
 `codex_bridge.py`：用 Codex 官方 app-server 把 ChatGPT 订阅接成后台的「AI 那一头」。一条常驻对话串、回话流式、可选主动开口。原版只有 Claude Code 插件和付费 API 两条路，这是第三条。
+
+## 密钥（新增 `relay/nyx_keys.py`）
+
+聊天页 Gauge 最底下的 keys：给 AI 的 API key 从手机填进服务器上的 `agent-keys.env`（600），备注另存，值不再回到页面，会改 shell/代理/Agent 行为的名字一律拒收。Claude Code 由 `start-channel.sh` 在开窗时告诉它文件位置；Codex 桥经 `/channel/keys`（只认本机直连）抄一份 600 的副本并告诉它位置。两边都是用到时在那条命令里 source，不重启。原版没有这一块。

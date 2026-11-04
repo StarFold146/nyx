@@ -16,6 +16,8 @@
           the context line (past it: save memory, then compact), compact now, a new window (it is handed the last
           hours of talk, word for word, up to a set length), go back to an old one.
           Claude Code: done here through tmux. Codex: the bridge picks the command up (GET/POST /app/window/cmd).
+  Keys    GET  /app/keys · POST /app/keys · POST /app/keys/delete · GET /channel/keys   API keys for the companion's
+          environment, set from the gauge so they never go through the chat (see nyx_keys.py)
 
 Everything is optional: a room whose pieces aren't installed just answers 503.
 Mounted from app.py with `nyx_extras.register(app, globals())`.
@@ -107,8 +109,13 @@ def live_session_meta(tmux_name):
     return best
 
 
+KEYS_FILE = None   # set in register(): the keys file a new window is told about (nyx_keys.py, start-channel.sh)
+
+
 def window_env(path=None, resume=""):
     env = {k: v for k, v in os.environ.items() if k in START_ENV_KEYS or k.startswith("LC_")}
+    if KEYS_FILE:
+        env["NYX_KEYS_FILE"] = str(KEYS_FILE)
     return dict(env, **({"PATH": path} if path else {}), **({"NYX_RESUME": resume} if resume else {}))
 
 
@@ -124,6 +131,10 @@ def register(app, g):
     nyx_town.register(app, g)
     import nyx_group   # the group chat: /g on the first companion's relay, /channel/inject on every relay
     nyx_group.register(app, g)
+    import nyx_keys   # keys for the companion's environment: /app/keys, /channel/keys
+    nyx_keys.register(app, g)
+    global KEYS_FILE
+    KEYS_FILE = nyx_keys.keys_file(g)
     check_auth, broadcast, now_iso = g["check_auth"], g["broadcast"], g["now_iso"]
     plugin_subs, human = g["plugin_subs"], g["HUMAN_NAME"]
     upload_dir, clean_filename = g["UPLOAD_DIR"], g["clean_filename"]
