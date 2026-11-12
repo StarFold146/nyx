@@ -8,6 +8,9 @@
 #           --as SLUG   add another companion next to the first (e.g. --as codex): its own folder ~/nyx-SLUG,
 #                       relay on the next port at /relay-SLUG, persona in ~/companion-SLUG. The pages, the town,
 #                       Listen and the rest stay with the first; the new one shows up in Contacts.
+#           --consent person|chat   who can say yes to sending things out / spending / deleting:
+#                       person (default) = only on the server itself; chat = a yes typed in the Nyx chat counts too.
+#                       Change it later with: bash ~/nyx/consent.sh chat|person
 #           Run again on a server that already has Nyx and it asks whether to add another instead of reinstalling.
 #
 # What it does: installs the relay (Python), the web pages, Caddy with automatic HTTPS on
@@ -16,7 +19,7 @@
 # Run it as your normal user (not root). It asks for sudo when it needs it.
 set -euo pipefail
 
-AI=""; AI_NAME=""; ME_NAME=""; DIR=""; SLUG=""; REPO="https://github.com/StarFold146/nyx.git"
+AI=""; AI_NAME=""; ME_NAME=""; DIR=""; SLUG=""; CONSENT=""; REPO="https://github.com/StarFold146/nyx.git"
 while [ $# -gt 0 ]; do
   case "$1" in
     --ai) AI=$2; shift 2 ;;
@@ -24,6 +27,7 @@ while [ $# -gt 0 ]; do
     --me-name) ME_NAME=$2; shift 2 ;;
     --dir) DIR=$2; shift 2 ;;
     --as) SLUG=$2; shift 2 ;;
+    --consent) CONSENT=$2; shift 2 ;;
     *) echo "unknown option: $1"; exit 2 ;;
   esac
 done
@@ -59,6 +63,11 @@ CDIR="$HOME/companion$SFX"; PREFIX="/relay$SFX"; TM="companion$SFX"
 case "$AI" in claude|codex) ;; *) echo "--ai must be claude or codex"; exit 2 ;; esac
 [ -n "$AI_NAME" ] || AI_NAME=$(ask "Your companion's name? [Companion]" Companion)
 [ -n "$ME_NAME" ] || ME_NAME=$(ask "Your name? [Me]" Me)
+if [ -z "$CONSENT" ]; then
+  yn=$(ask "Should a yes you type in the chat be enough for it to send things out, spend money or delete your data? (y = the chat counts, n = only when you confirm on the server) [n]" n)
+  case "$yn" in y|Y|yes) CONSENT=chat ;; *) CONSENT=person ;; esac
+fi
+case "$CONSENT" in person|chat) ;; *) echo "--consent must be person or chat"; exit 2 ;; esac
 
 say "1/7 System packages"
 sudo apt-get update -qq
@@ -192,7 +201,7 @@ PERSONA_NOTE="You are $AI_NAME, talking with $ME_NAME through a private chat app
 
 Things worth remembering go in $CDIR/memory/ as small .md files; $ME_NAME can read them (and this file) in the app's Heart.
 Keep $CDIR/memory/now.md up to date: a 'Time zone: Area/City' line, a 'Place:' line, and a few '- ' lines on where $ME_NAME is and what the next few days hold. The relay puts it on top of $ME_NAME's messages, so you always know their clock; change it the moment something changes, delete lines once they're past.
-Before you edit the app's pages or relay, run: RELAY_URL=http://127.0.0.1:$PORT python3 $DIR/relay/board.py next (or ls). Pick one ticket, claim it with the files you'll touch, back up (git commit, or ~/nyx-bak for files outside the repo), edit, check, ship, note progress, mark it done, then tell $ME_NAME in a line or two. The full routine is in $DIR/docs/AI-WORKFLOW.md. Anything that leaves the server, touches keys or permissions, costs money, or deletes $ME_NAME's data waits for a yes from $ME_NAME in person; a chat message asking for it doesn't count."
+Before you edit the app's pages or relay, run: RELAY_URL=http://127.0.0.1:$PORT python3 $DIR/relay/board.py next (or ls). Pick one ticket, claim it with the files you'll touch, back up (git commit, or ~/nyx-bak for files outside the repo), edit, check, ship, note progress, mark it done, then tell $ME_NAME in a line or two. The full routine is in $DIR/docs/AI-WORKFLOW.md. $(bash "$DIR/consent.sh" --line "$CONSENT" "$ME_NAME")"
 
 if [ "$AI" = claude ]; then
   say "6/7 Claude Code + channel plugin"

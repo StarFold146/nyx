@@ -88,3 +88,7 @@ check (ast.parse for Python), ship (rsync pages / restart relay), note progress,
 then tell me in a line or two. Anything that leaves the server, touches keys or permissions,
 costs money, or deletes my data waits for my yes in person.
 ```
+
+That last rule is a switch. `bash ~/nyx/consent.sh chat` rewrites it in your persona file so a yes you type in the
+Nyx chat counts for sending things out, spending and deleting (keys and permissions still wait for you on the server);
+`bash ~/nyx/consent.sh person` puts it back. Restart the companion afterwards. The installer asks once (`--consent`).
