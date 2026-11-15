@@ -46,8 +46,16 @@ http.createServer((req, res) => {
   req.on('end', async () => {
     res.setHeader('Content-Type', 'application/json');
     if (!ALLOW.has(action)) { res.statusCode = 404; return res.end('{"error":"not allowed"}'); }
-    try { const r = await n[action]({ ...(body ? JSON.parse(body) : {}), cookie: cookie(), timestamp: Date.now() }); res.end(JSON.stringify(r.body)); }
-    catch (e) { res.statusCode = 502; res.end(JSON.stringify({ error: (e && e.body) || String(e) })); }
+    try {
+      const q = { ...(body ? JSON.parse(body) : {}), cookie: cookie(), timestamp: Date.now() };
+      let r;
+      try { r = await n[action](q); } catch (e) {
+        // 海外服务器上 song_url_v1 常被风控挡（-460「网络环境存在风险」），改走老接口 song_url，返回结构一样
+        if (action !== 'song_url_v1' || !(e && e.body && e.body.code === -460)) throw e;
+        r = await n.song_url({ ...q, br: { standard: 128000, higher: 192000, exhigh: 320000 }[q.level] || 999000 });
+      }
+      res.end(JSON.stringify(r.body));
+    } catch (e) { res.statusCode = 502; res.end(JSON.stringify({ error: (e && e.body) || String(e) })); }
   });
 }).listen(3020, '127.0.0.1');
 ```
