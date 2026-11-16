@@ -133,6 +133,8 @@ def register(app, g):
     nyx_group.register(app, g)
     import nyx_keys   # keys for the companion's environment: /app/keys, /channel/keys
     nyx_keys.register(app, g)
+    import nyx_niao   # what the 祂 pages add: reactions, prefs, group pin, 口袋, to-do inbox, stash
+    nyx_niao.register(app, g)
     global KEYS_FILE
     KEYS_FILE = nyx_keys.keys_file(g)
     check_auth, broadcast, now_iso = g["check_auth"], g["broadcast"], g["now_iso"]
@@ -1125,6 +1127,59 @@ def register(app, g):
         except Exception:
             st["pending_effort"] = None
         return st
+
+    # ---- [Nyx 2.0] thinking effort and a /app/context view of the window, for the 祂 chat page ----
+    EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+
+    async def apply_effort(level):
+        try:
+            EFFORT_FILE.write_text(level)
+        except Exception:
+            pass
+        proc = await asyncio.to_thread(tmux, "send-keys", "-t", TMUX, "C-u", "/effort " + level, "Enter")
+        return proc.returncode == 0
+
+    @app.post("/app/effort")
+    async def effort_post(request: Request):
+        """Claude Code only: typed in when the window is idle; while it's busy the level waits in effort_pending."""
+        check_auth(request)
+        level = str((await request.json()).get("level") or "").strip()
+        if level not in EFFORT_LEVELS:
+            raise HTTPException(status_code=400, detail="unknown effort")
+        if backend() == "codex":
+            raise HTTPException(status_code=501, detail="effort is a Claude Code setting")
+        st = await asyncio.to_thread(claude_busy)
+        if st.get("state") == "offline":
+            raise HTTPException(status_code=503, detail="the window isn't running")
+        if st.get("state") == "idle":
+            EFFORT_PENDING.unlink(missing_ok=True)
+            return {"level": level, "applied": await apply_effort(level)}
+        EFFORT_PENDING.write_text(level)
+        return {"level": level, "applied": False, "pending": True}
+
+    async def effort_pending_loop():
+        while True:
+            await asyncio.sleep(5)
+            try:
+                if not EFFORT_PENDING.exists() or backend() == "codex":
+                    continue
+                if (await asyncio.to_thread(claude_busy)).get("state") == "idle":
+                    level = EFFORT_PENDING.read_text().strip()
+                    EFFORT_PENDING.unlink(missing_ok=True)
+                    if level in EFFORT_LEVELS:
+                        await apply_effort(level)
+            except Exception:
+                pass
+
+    g["STARTUP_HOOKS"].append(effort_pending_loop)
+
+    @app.get("/app/context")
+    async def context_get(request: Request):
+        """The same numbers as GET /app/window, under the names the 祂 chat page reads."""
+        check_auth(request)
+        u = await asyncio.to_thread(usage_now)
+        return {"sid": u.get("sid"), "active_sid": u.get("sid"), "usage_tokens": u.get("used") or 0, "line_k": line_k(),
+                "nudged": bool(ctx["nudged_at"]), "started_at": u.get("started_at")}
 
     @app.post("/app/busy")
     async def busy_post(request: Request):

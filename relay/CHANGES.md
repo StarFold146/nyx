@@ -47,3 +47,19 @@ Nyx 其他房间要的接口，每个都可以不装，没装的那个只回 503
 ## 密钥（新增 `relay/nyx_keys.py`）
 
 聊天页 Gauge 最底下的 keys：给 AI 的 API key 从手机填进服务器上的 `agent-keys.env`（600），备注另存，值不再回到页面，会改 shell/代理/Agent 行为的名字一律拒收。Claude Code 由 `start-channel.sh` 在开窗时告诉它文件位置；Codex 桥经 `/channel/keys`（只认本机直连）抄一份 600 的副本并告诉它位置。两边都是用到时在那条命令里 source，不重启。原版没有这一块。
+
+## Nyx 2.0.0：祂要的口子（新文件 `relay/nyx_niao.py`，另在 `relay/nyx_extras.py` 加两处）
+
+祂（`niao/`）这层皮用到、原来没有的接口。`nyx_niao.py` 由 `nyx_extras.register` 挂上，数据都放在数据库旁边，不进网页目录：
+
+- `POST /app/react` `{id, emoji}`：她给某条消息的回应，空的就是收回；流里推一条 `reaction`，Claude Code 那头会收到一句提示。
+- `GET|POST /app/prefs` `{ts, data}`：手机设置（头像、存的表情、颜文字、常用语…）在服务器上的一份副本，按 ts 后写的赢；来自未来的 ts 压回现在；推上来没提到的头像和表情不会被抹掉；上一份留成 `prefs.prev`。
+- `GET|POST /app/group_pin` `{text}`：群聊置顶那一行。
+- `GET|POST /app/pocket`、`POST /app/pocket/{id}`：口袋。分享进来的东西（`by` 不是 `note`）攒三分钟（`RELAY_POCKET_NOTIFY_DELAY`）合成一条告诉 AI。
+- `GET|POST /app/todo-inbox`、`POST /app/todo-inbox/ack`：AI 往手机待办里丢事情的信箱（`NYX_TODO_INBOX` 可改位置）。
+- `POST /app/stash/chunk`、`POST /app/stash/done`、`GET /app/stash/list`、`GET /app/stash/file/{id}`、`POST /app/stash/delete`：寄存，大文件切块传上来，取的时候要带钥匙（不放在不验钥匙的 `/uploads` 下）。目录 `RELAY_STASH_DIR`，默认数据库旁边的 `stash/`。
+
+`relay/nyx_extras.py`：
+
+- `POST /app/effort` `{level}`（Claude Code）：窗口空着就当场打 `/effort`，忙着先记进 `effort_pending`，空下来再打。
+- `GET /app/context`：跟 `GET /app/window` 同一份数，换成祂聊天页读的名字（`sid`、`active_sid`、`usage_tokens`、`line_k`）。
