@@ -69,7 +69,8 @@
     document.addEventListener("touchend", function (e) { if (sx === null) return; var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy; sx = null;
       if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.4) return; if (dx > 0 && !H.hidden) openDrawer(); else closeDrawer(); }, { passive: true }); })();
 
-  /* two homes: NyxInk (the river poster) and NyxTree; the choice is kept per device */
+  /* two homes here: NyxInk (the river poster) and NyxTree; a third, 祂, lives in niao/. The choice is kept per device */
+  function wantsNiao() { var k = null; try { k = localStorage.getItem("nyx_home"); } catch (e) {} return k ? k === "niao" : C.home === "niao"; }
   function homeKind() { var k = null; try { k = localStorage.getItem("nyx_home"); } catch (e) {} return k === "tree" || k === "ink" ? k : (C.home === "tree" ? "tree" : "ink"); }
   function makeHome() {
     if (home && home.stop) home.stop();
@@ -81,6 +82,7 @@
   }
   document.querySelectorAll("#homes button").forEach(function (b) { b.onclick = function () {
     try { localStorage.setItem("nyx_home", b.dataset.h); } catch (e) {}
+    if (b.dataset.h === "niao") { location.href = "niao/index.html"; return; }
     closeDrawer(); makeHome(); if (!$("home").hidden) home.refresh();
   }; });
 
@@ -797,6 +799,7 @@
       (d.messages || []).forEach(put); openStream(); loadMeter();
       if (!hold && window.NyxHold) hold = NyxHold(hapi, { me: ME, chat: api });
       pollBusy();
+      if (location.hash !== "#chat" && wantsNiao()) { location.replace("niao/index.html"); return; }   // the key is saved; 祂 reads the same nyx_key
       if (!home) makeHome();
       show(location.hash === "#chat" ? "room" : "home");
     });

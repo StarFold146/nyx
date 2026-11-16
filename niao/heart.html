@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='heart',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>心脏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+/* 心脏页：一张解剖图式的铅笔稿扎在右上，一条心电线横贯整页；尺规细引线从心脏上的几处引到左边，顺着往下各落到一组文件。点一件就地展开读全文 */
+body{--lb:var(--blue);--red:#b3261e;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz)} body.dark{--lb:#8794f2;--red:#e0675c}
+#scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none}
+#scroll::-webkit-scrollbar{display:none}
+#scroll.down{-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 46px,#000 74px);mask-image:linear-gradient(to bottom,transparent 0,transparent 46px,#000 74px)}
+#plate{position:relative;width:100%;min-height:100%;padding-bottom:64px}
+#art{position:absolute;left:0;top:0;display:block;pointer-events:none}
+#leads{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#leads .ld{fill:none;stroke:var(--fg3);stroke-width:.4;stroke-linecap:butt;stroke-linejoin:miter;transition:stroke .2s}
+#leads .ld.on{stroke:var(--lb);stroke-width:.5}
+#leads .an{fill:var(--bg);stroke:var(--fg2);stroke-width:.4;transition:stroke .2s,fill .2s}
+#leads .an.on{fill:var(--lb);stroke:var(--lb)}
+#leads .ak{fill:var(--fg2)}
+#leads .ecg{fill:none;stroke:var(--lb);stroke-width:.5;stroke-linejoin:miter;stroke-linecap:butt}
+#leads .tk{stroke:var(--lb);stroke-width:.35;opacity:.55}
+#leads .ecg.in{stroke-width:.4;opacity:.42}
+#leads .ecg.tri{fill:var(--lb);stroke:none;opacity:.7}
+#seamgrip{position:absolute;left:0;right:0;height:30px;z-index:3;touch-action:none;cursor:ns-resize;-webkit-tap-highlight-color:transparent;outline:none}
+#seamgrip.on{cursor:grabbing}
+#leads .tk.in{opacity:.22}
+#leads .pt.in circle{opacity:.45}
+#leads .tl{font-family:var(--mono);font-size:6.5px;fill:var(--lb);opacity:.8;letter-spacing:.04em}
+#leads .ed{fill:var(--fg2)}
+#leads .pt circle{fill:var(--lb)}
+/* 图版铭文：衬线小号大写、字距拉开、淡墨；图版号更小；中文彩蛋缩到四五个像素，只是一道细纹 */
+#leads .insc text{fill:var(--fg2)}
+#leads .lat{font-family:var(--fe);font-weight:500;font-size:6px;letter-spacing:.22em;opacity:.6}
+#leads .tab{font-family:var(--fe);font-style:italic;font-size:5px;letter-spacing:.16em;opacity:.5}
+#leads .tr{stroke:var(--fg3);stroke-width:.35;fill:none}
+#leads .egg{font-family:var(--fz);font-weight:300;font-size:9px;letter-spacing:.06em;opacity:.42}
+/* 页眉：返回月亮右边，小图标 + 小号加粗的「心脏」，底下垫一个很淡的衬线大写 */
+#hd{position:absolute;left:54px;top:22px;display:flex;align-items:flex-start;gap:7px;z-index:2}
+#hd svg{width:24px;height:19px;overflow:visible;flex:none;margin-top:-2px}
+#hd .tt{position:relative;line-height:1}
+#hd b{position:relative;display:block;font-weight:600;font-size:13px;letter-spacing:.1em;color:var(--fg)}
+#hd .bg{position:absolute;left:-2px;top:1px;font-family:var(--fe);font-weight:500;font-size:12px;letter-spacing:0;color:var(--fg);opacity:.07;white-space:nowrap;pointer-events:none}
+#hd .sub{display:block;margin-top:6px;font-size:8.5px;letter-spacing:.14em;color:var(--fg3);font-weight:300;white-space:nowrap}
+#hd svg .b{fill:var(--lb)}
+#hd svg .w{fill:none;stroke:var(--bg);stroke-width:.4;stroke-linecap:butt;stroke-linejoin:miter}
+#hd svg .l{fill:none;stroke:var(--lb);stroke-width:.45;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#hd svg .h{fill:none;stroke:var(--lb);stroke-width:.3;stroke-linecap:butt}
+#hd svg .pt circle{fill:var(--lb)}
+#hd svg .ptw circle{fill:var(--bg)}
+#hd svg .sh{fill:rgba(22,23,28,.11)}
+#hd svg .hi{fill:#fffdf7}
+#hd svg .fl{fill:color-mix(in srgb,var(--lb) 79%,#f1eee6)}
+#hd svg .fd{fill:color-mix(in srgb,var(--lb) 80%,#16171c)}
+#hd svg .edge{fill:none;stroke:color-mix(in srgb,var(--lb) 66%,#16171c);stroke-width:.6;stroke-linejoin:miter}
+body.dark #hd svg .sh{fill:rgba(0,0,0,.45)}
+body.dark #hd svg .hi{fill:rgba(255,255,255,.1)}
+body.dark #hd svg .fl{fill:color-mix(in srgb,var(--lb) 88%,#ffffff)}
+/* 文件清单：组头一个罗马数字 + 组名，文件一行一件，名字和读数中间一道点线 */
+#groups{position:absolute;right:18px;z-index:2}
+.grp + .grp{margin-top:20px}
+.gh{position:relative;display:flex;align-items:baseline;gap:7px;height:18px;line-height:18px;white-space:nowrap}
+.gh .n{font-family:var(--fe);font-style:italic;font-weight:400;font-size:10px;color:var(--fg3);width:12px}
+.gh b{font-weight:600;font-size:11px;letter-spacing:.12em;color:var(--fg)}
+.gh small{margin-left:auto;font-family:var(--mono);font-size:7.5px;letter-spacing:.04em;color:var(--fg3)}
+.fi{display:block;width:100%;text-align:left;padding:0}
+.fr{display:flex;align-items:baseline;gap:6px;min-height:21px;padding:5px 0 3px 19px;line-height:1.25}
+.fr .nm{display:flex;align-items:baseline;flex:0 1 auto;min-width:0;font-size:10.5px;letter-spacing:.03em;color:var(--fg);font-weight:400;border-bottom:.5px solid transparent;transition:border-color .2s,color .2s}
+.fr .nm i,.fr .nm em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fr .nm i{flex:0 3 auto;font-family:var(--mono);font-size:7.5px;color:var(--fg3);letter-spacing:0;margin-right:1px}
+.fr .nm em{flex:0 1 auto;min-width:2.5em}
+.fr .dl{flex:1 1 8px;min-width:8px;height:0;border-bottom:.5px dotted var(--fg3);opacity:.7;transform:translateY(-2px)}
+.fr .mt{flex:none;font-family:var(--mono);font-size:7.5px;letter-spacing:.02em;color:var(--fg3);white-space:nowrap}
+.fi.on .nm{border-bottom-color:var(--lb)}
+.fi.on .mt{color:var(--lb)}
+/* 信纸：从这一行底下展开；左边一根蓝细线，正文 12px，长了自己滚 */
+.sht{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s cubic-bezier(.2,.7,.3,1)}
+.sht.open{grid-template-rows:1fr}
+.sht > div{min-height:0;overflow:hidden}
+.lt{position:relative;margin:2px 0 8px 19px;padding:6px 0 4px 11px;border-left:.5px solid var(--lb)}
+.lt::before{content:"";position:absolute;left:-3px;top:0;width:5.5px;border-top:.5px solid var(--lb)}
+.lt::after{content:"";position:absolute;left:-3px;bottom:0;width:5.5px;border-top:.5px solid var(--lb)}
+.lt .lh{font-family:var(--mono);font-size:7.5px;letter-spacing:.03em;color:var(--fg3);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt .tx{max-height:min(56vh,440px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;font-size:12px;line-height:1.8;letter-spacing:.03em;color:var(--fg);white-space:pre-wrap;overflow-wrap:anywhere;font-weight:400}
+.lt .tx::-webkit-scrollbar{display:none}
+.lt .tx.more{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent)}
+.lt .tx .h1{font-weight:600;letter-spacing:.1em}
+.lt .tx .h2{font-weight:600;color:var(--fg2);letter-spacing:.08em}
+.lt .tx.code{font-family:var(--mono),var(--fz);font-size:9.5px;line-height:1.7;letter-spacing:0;white-space:pre;overflow-x:auto;color:var(--fg2)}
+.lt .q{font-size:10px;letter-spacing:.14em;color:var(--fg3);font-weight:300}
+/* 一行安静的小字：读着、没读到、空着、没钥匙 */
+#msg{position:absolute;font-size:10.5px;letter-spacing:.14em;color:var(--fg3);font-weight:300;z-index:2}
+#msg[hidden]{display:none}
+#msg a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
+@media (prefers-reduced-motion:reduce){.sht,#leads .ld,#leads .an{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="deco"></canvas>
+  <div id="content">
+    <div id="scroll">
+      <div id="plate">
+        <canvas id="art" aria-hidden="true"></canvas>
+        <svg id="leads" aria-hidden="true"></svg>
+        <div id="seamgrip" role="slider" tabindex="0" aria-label="心电线，上下拖动：往上数字多，往下血多" aria-orientation="vertical"></div>
+        <div id="hd"><svg id="hico" viewBox="-13 -10 26 20" aria-hidden="true"></svg><div class="tt"><span class="bg en" aria-hidden="true">HEART</span><b>心脏</b><span class="sub" id="sub">只读 · 点一件看全文</span></div></div>
+        <div id="groups" role="list" aria-label="文件"></div>
+        <p id="msg" role="status" hidden></p>
+      </div>
+    </div>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+</div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="heart.js"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

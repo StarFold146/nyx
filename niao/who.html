@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='who',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>档案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+/* 个人信息页：这位的档案。上面一只大眼睛，头像在瞳孔里，四周一圈刻度、睫毛、铅笔辅助弧和颗粒（整页独一一处密的）；
+   眼睑上垂下一根测绘线，线上挂几行读数和几枚细线文字钮；线脚一滴劈开的蓝泪。其余是白纸。 */
+body{--lb:var(--blue)} body.dark{--lb:#8794f2}
+:root{--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+#hd{position:absolute;z-index:4;left:54px;top:22px;line-height:1;pointer-events:none}
+#hd h1{position:relative;font-weight:600;font-size:13px;letter-spacing:.06em;color:var(--fg)}
+#hd h1 .en{position:absolute;left:-12px;top:-9px;font-family:var(--fe);font-style:italic;font-weight:300;font-size:28px;letter-spacing:.16em;color:var(--fg);opacity:.07;white-space:nowrap}
+/* 页眉大字（11/13 定；?hd=small 看旧样）：英文放大垫底、中文缩小 */
+body.bighd #hd h1{font-size:11px;letter-spacing:.1em}
+body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;opacity:.045;pointer-events:none;line-height:1}
+#hd p{margin-top:6px;font-family:var(--mono),var(--fz);font-size:7.5px;letter-spacing:.06em;color:var(--fg3)}
+/* 大眼睛：整只是一个按钮（点了换这位的头像） */
+#eyeB{position:absolute;z-index:3;padding:0;display:block;border-radius:50%}
+#eyeB:focus-visible{outline:none}
+#eyeB:focus-visible + #eyeF{opacity:1}
+#eye{position:absolute;z-index:3;overflow:visible;pointer-events:none}
+#eyeF{position:absolute;z-index:3;pointer-events:none;opacity:0;border-bottom:.5px solid var(--fg3)}
+/* 测绘线和挂在上面的读数 */
+#line{position:absolute;z-index:3;width:0;border-left:.5px solid var(--lb);opacity:.5;pointer-events:none}
+.rd{position:absolute;z-index:4;display:flex;align-items:baseline;line-height:1;white-space:nowrap}
+.rd::before{content:"";position:absolute;left:0;top:50%;width:6px;border-top:.5px solid var(--lb)}
+.rd .k{position:absolute;right:calc(100% + 14px);top:50%;transform:translateY(-50%);font-size:7.5px;letter-spacing:.14em;color:var(--fg3);font-weight:300}
+.rd .v{padding-left:12px;font-size:10.5px;letter-spacing:.06em;color:var(--fg);font-weight:300;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rd.nm .v{font-weight:600;font-size:12px;letter-spacing:.08em}
+.rd .v.mono{font-family:var(--mono),var(--fz);font-size:8.5px;letter-spacing:.02em;color:var(--fg2);font-weight:400}
+.rd .v.dim{color:var(--fg3)}
+.rd .v .dot{display:inline-block;width:3.2px;height:3.2px;border-radius:50%;background:var(--lb);margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+.rd .v .dot.off{background:none;border:.5px solid var(--fg3)}
+.rd .v small{font-size:8px;color:var(--fg3);letter-spacing:.06em;margin-left:7px}
+.rd button.v{text-align:left;cursor:text}
+.rd button.v.empty{color:var(--fg3);letter-spacing:.14em}
+.rd input{margin-left:12px;width:9em;max-width:calc(100vw - 180px);font:inherit;font-size:10.5px;letter-spacing:.06em;font-weight:300;color:var(--fg);background:none;border:0;border-bottom:.5px solid var(--lb);outline:0;padding:1px 0 2px;border-radius:0;caret-color:var(--blue);-webkit-appearance:none;appearance:none}
+.rd input::selection{background:color-mix(in srgb,var(--lb) 16%,transparent);color:var(--fg)}
+.rd .ori{font-size:8px;color:var(--fg3);letter-spacing:.08em;margin-left:9px}
+/* 细线文字钮 */
+.rd.act button{margin-left:12px;font-size:9.5px;letter-spacing:.14em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid var(--fg3);font-weight:300;display:inline-flex;align-items:center;gap:7px}
+.rd.act button:active{color:var(--lb);border-bottom-color:var(--lb)}
+.rd.act .me{width:15px;height:15px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px var(--fg3);display:inline-grid;place-items:center;font-family:var(--fz);font-size:8px;color:var(--fg2);flex:none;background:var(--bg)}
+.rd.act .me img{width:100%;height:100%;object-fit:cover;display:block}
+#tearF{position:absolute;z-index:3;overflow:visible;pointer-events:none}
+/* 页脚一行：云上那份的状态、回换皮页 */
+#foot{position:absolute;z-index:4;left:0;right:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;line-height:1.4}
+#sync{font-family:var(--mono),var(--fz);font-size:7.5px;letter-spacing:.04em;color:var(--fg3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sync a,#foot a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
+#skin{flex:none;font-size:9px;letter-spacing:.14em;font-weight:300;color:var(--fg2)!important;border-bottom-color:var(--fg3)!important}
+/* 查岗：一层纸，中间一台细线描的手机 */
+#ph{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:color-mix(in srgb,var(--bg) 94%,transparent);opacity:0;transition:opacity .2s}
+#ph.on{opacity:1}
+#ph .fr{position:relative;width:min(300px,78vw);height:min(600px,72vh);padding:9px;border:.5px solid var(--fg2)}
+#ph .fr::before{content:"";position:absolute;left:50%;top:3.5px;width:22px;margin-left:-11px;border-top:.5px solid var(--fg3)}
+#ph .fr::after{content:"";position:absolute;right:-4px;top:58px;height:26px;border-left:.5px solid var(--fg3)}
+#ph iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
+#ph button{font-size:10px;letter-spacing:.2em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid var(--fg3);font-weight:300}
+#toast{position:absolute;z-index:11;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.14em;color:var(--fg2);font-weight:300;pointer-events:none;opacity:0;transition:opacity .25s}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#ph{transition:none}}
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('hd')!=='small')document.body.classList.add('bighd');</script>
+<div id="stage">
+  <canvas id="deco" aria-hidden="true"></canvas>
+  <div id="content">
+    <div id="hd"><h1><span class="en" aria-hidden="true">FILE</span>档案</h1><p id="no"></p></div>
+    <button id="eyeB" type="button" aria-label="换这位的头像"></button>
+    <svg id="eye" aria-hidden="true"></svg>
+    <div id="eyeF" aria-hidden="true"></div>
+    <div id="line" aria-hidden="true"></div>
+    <div class="rd nm" id="rName"><span class="k">名字</span><span class="v" id="vName"></span><span class="ori" id="vOri" hidden></span></div>
+    <div class="rd" id="rRemark"><span class="k">备注</span><button class="v" id="vRemark" type="button" aria-label="改备注"></button></div>
+    <div class="rd" id="rModel"><span class="k">模型</span><span class="v mono" id="vModel"></span></div>
+    <div class="rd" id="rState"><span class="k">此刻</span><span class="v" id="vState" role="status" aria-live="polite"></span></div>
+    <div class="rd act" id="aAv"><button type="button" id="bAv">换头像</button></div>
+    <div class="rd act" id="aMe"><button type="button" id="bMe"><span class="me" id="meAv" aria-hidden="true"></span>换我的头像</button></div>
+    <div class="rd act" id="aPh" hidden><button type="button" id="bPh">查岗</button></div>
+    <svg id="tearF" aria-hidden="true"></svg>
+    <div id="foot"><span id="sync" role="status"></span><a id="skin" href="skin.html">回换皮页</a></div>
+    <div id="toast" role="status"></div>
+    <input type="file" id="f1" accept="image/*" hidden><input type="file" id="f2" accept="image/*" hidden>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+  <canvas id="fx"></canvas>
+</div>
+<div id="ph" role="dialog" aria-modal="true" aria-label="查岗"><div class="fr"><iframe title="祂的手机"></iframe></div><button type="button" id="phX">放下手机</button></div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="who.js"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

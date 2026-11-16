@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='people',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>家里 · 邮票夹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+/* 联系人 F 版「邮票夹」：只有一沓邮票，从屏幕底下长上来；当前这位正对屏幕、往上抽出一截，是整页独一一整张、独一带蓝的；
+   后几位在它背后一层层往上退，前两位朝人微倾压住它的下部，都是描在画布上的铅笔线稿。上下划 = 一格格翻过去。
+   底下一层很淡的航线（画在 #deco 上），燕子头前接出独一一根蓝的（#rtb，在邮票层下面）。
+   点正中那枚翻到背面（背胶面 = 这位的档案）；邮票右下角外停着一只铅笔燕子，点它寄出去 = 进聊天。 */
+body{--lb:var(--blue)} body.dark{--lb:#8794f2}
+:root{--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+#content{overflow:hidden}
+#hd{position:absolute;z-index:4;left:54px;top:22px;line-height:1;pointer-events:none}
+#hd h1{position:relative;font-weight:600;font-size:13px;letter-spacing:.06em;color:var(--fg)}
+#hd h1 .en{position:absolute;left:-12px;top:-9px;font-family:var(--fe);font-style:italic;font-weight:300;font-size:28px;letter-spacing:.16em;color:var(--fg);opacity:.07;white-space:nowrap}
+/* 页眉大字（11/13 定；?hd=small 看旧样）：英文放大垫底、中文缩小 */
+body.bighd #hd h1{font-size:11px;letter-spacing:.1em}
+body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;opacity:.045;pointer-events:none;line-height:1}
+#hd p{margin-top:6px;font-family:var(--mono),var(--fz);font-size:7.5px;letter-spacing:.06em;color:var(--fg3)}
+#hd p b{font-weight:400;color:var(--fg2)}
+/* 右上的切换钮：一枚小邮票、一颗小星球 */
+#look{position:absolute;z-index:12;right:8px;top:16px;width:48px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+#look svg{display:block;width:30px;height:14px;overflow:visible}
+#look:active svg{opacity:.6}
+/* 邮票夹 */
+#deck{position:absolute;inset:0;z-index:3;touch-action:none;-webkit-user-select:none;user-select:none;outline:none}
+#nvw{position:absolute;left:0;top:0;display:block;pointer-events:none}
+#rtb{position:absolute;left:0;top:0;z-index:2;display:block;pointer-events:none;will-change:transform}
+#fb,#ff{position:absolute;left:0;top:0;display:block;pointer-events:none}
+#fb{z-index:1} #ff{z-index:400}
+.card{position:absolute;display:block;will-change:transform,opacity;transform-origin:0 0}
+.card .clip{position:absolute;inset:0;perspective:900px;pointer-events:none}
+.card .clip .flip{pointer-events:auto}
+.card[hidden]{display:none}
+.flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .26s cubic-bezier(.3,.1,.25,1)}
+.card.flipped .flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;display:block;padding:0;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.face canvas{position:absolute;display:block;pointer-events:none;will-change:opacity}
+.front:focus-visible{outline:none}
+.front:focus-visible::after{content:"";position:absolute;left:12px;right:12px;bottom:-5px;border-bottom:.5px solid var(--fg3)}
+.back{transform:rotateY(180deg);cursor:default}
+body.rm .flip{transition:none}
+body.rm .card .back{visibility:hidden;opacity:0;transform:none;transition:opacity .18s,visibility 0s .18s}
+body.rm .card.flipped .flip{transform:none}
+body.rm .card.flipped .back{visibility:visible;opacity:1;transition:opacity .18s}
+body.rm .card.flipped .front{opacity:0;transition:opacity .18s}
+/* 邮票右肩外：名字、一行极小的状态 */
+.cap{position:absolute;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;line-height:1;pointer-events:none;white-space:nowrap}
+.cap b{display:block;font-weight:600;font-size:12px;letter-spacing:.06em;color:var(--fg)}
+.cap b small{font-weight:400;font-size:7px;letter-spacing:.04em;color:var(--fg3);margin-top:5px;font-family:var(--mono),var(--fz)}
+.cap i{display:block;margin-right:6px;font-style:normal;font-family:var(--mono),var(--fz);font-size:7px;letter-spacing:.05em;color:var(--fg3)}
+/* 正在聊的那位：名字上头一粒蓝点（标签耳上也有一粒） */
+.card.cur .cap b::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--lb);margin-bottom:5px;vertical-align:middle}
+.card.off .cap b,.card.wait .cap b{color:var(--fg3);font-weight:400}
+/* 燕子：停在邮票右下角伸出去的一截细线上，点它寄出去 */
+.bird{position:absolute;width:48px;height:44px;padding:0;display:block}
+.bird svg{position:absolute;left:4px;top:5px;width:40px;height:34px;overflow:visible}
+.bird:active svg{opacity:.65}
+.bird:focus-visible{outline:none}
+.bird:focus-visible svg .wire{stroke:var(--lb)}
+#flyer{position:fixed;z-index:70;pointer-events:none;width:40px;height:34px;overflow:visible}
+/* 背面：一张建筑图版，字段安在画上（位置由 layoutBack 按画的同一套数摆） */
+.bk{position:absolute;inset:0;color:var(--fg);line-height:1;text-align:left}
+.bk [hidden]{display:none!important}
+.bk .bh{position:absolute;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono),var(--fz);font-size:5.5px;letter-spacing:.08em;color:var(--fg3)}
+.bk .rt{width:40px;height:40px;margin:-16px -15px -16px 0;padding:0;display:flex;align-items:center;justify-content:center}
+.bk .rt svg{width:9px;height:9px;overflow:visible}
+.bk .r{position:absolute;display:block}
+.bk button{position:relative}
+.bk button::after{content:"";position:absolute;inset:-14px -6px}
+.bk .k{display:block;font-size:5.5px;letter-spacing:.18em;color:var(--fg3);font-weight:300;margin-bottom:4px;white-space:nowrap}
+.bk .k i{font-family:var(--fe);font-style:italic;font-size:6.5px;letter-spacing:.06em}
+.bk .v{display:block;font-size:7.5px;letter-spacing:.04em;font-weight:300;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:inherit;max-width:100%}
+.bk .nm{display:flex;align-items:center;justify-content:center;text-align:center}
+.bk .nm .k{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bk .nm .v{font-weight:600;font-size:9.5px;letter-spacing:.22em;padding-left:.22em}
+.bk .nm .v small{font-size:5.5px;color:var(--fg3);letter-spacing:.08em;margin-left:4px;font-weight:300}
+.bk .rk,.bk .md{display:flex;align-items:baseline;justify-content:flex-start;gap:0;height:12px}
+.bk .rk .k,.bk .md .k{margin:0;font-size:5px;width:49px;flex:none}
+.bk .rk .v{flex:0 1 auto;font-size:7.5px;letter-spacing:.1em;cursor:text;padding:0;min-width:0;text-align:left}
+.bk .rk .v.empty{color:var(--fg3);letter-spacing:.2em}
+.bk .rk input{flex:0 1 75%;width:75%;min-width:0;font:inherit;font-size:7.5px;letter-spacing:.08em;font-weight:300;color:var(--fg);background:none;border:0;border-bottom:.5px solid var(--lb);outline:0;padding:0 0 1px;border-radius:0;caret-color:var(--blue);-webkit-appearance:none;appearance:none;text-align:left}
+.bk .sa{text-align:right}
+.bk .sa .k{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bk .sa .v.st{font-size:6.5px;letter-spacing:.1em}
+.bk .sa .v.st small{white-space:nowrap;letter-spacing:.02em}
+.bk .v.mono{font-family:var(--mono),var(--fz);font-size:6.5px;letter-spacing:.02em;color:var(--fg2);font-weight:400}
+.bk .v.dim{color:var(--fg3)}
+.bk .v.st{white-space:normal;line-height:1.3}
+.bk .v.st small{display:block;font-size:5.5px;color:var(--fg3);letter-spacing:.06em;margin-top:3px}
+.bk .v .dot{display:inline-block;width:2.5px;height:2.5px;border-radius:50%;background:var(--lb);margin-right:4px;vertical-align:middle;position:relative;top:-1px}
+.bk .v .dot.off{background:none;border:.5px solid var(--fg3)}
+.bk .acts{position:absolute;display:flex;justify-content:space-between;align-items:center}
+.bk .acts button{font-size:6.5px;letter-spacing:.14em;color:var(--fg2);padding:0;font-weight:300;display:inline-flex;align-items:center;gap:5px;min-height:16px}
+.bk .acts button[hidden]{display:none}
+.bk .acts button:active{color:var(--lb)}
+.bk .me{width:15px;height:15px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .4px var(--fg2),0 0 0 2px var(--bg),0 0 0 2.4px color-mix(in srgb,var(--fg3) 70%,transparent);display:inline-grid;place-items:center;font-family:var(--fz);font-size:6.5px;color:var(--fg2);flex:none;background:var(--bg)}
+.bk .me img{width:100%;height:100%;object-fit:cover;display:block}
+.bk .sync{position:absolute;font-family:var(--mono),var(--fz);font-size:5.5px;letter-spacing:.03em;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;text-align:center}
+.bk .sync a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
+/* 安静的一行：加载中、读不到、没钥匙、没人 */
+#note{position:absolute;z-index:5;left:54px;top:86px;max-width:250px;font-size:10px;letter-spacing:.12em;color:var(--fg3);font-weight:300;line-height:1.4}
+#note[hidden]{display:none}
+#note a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
+#live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* 查岗：一层纸，中间一台细线描的手机（同档案页） */
+#ph{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:color-mix(in srgb,var(--bg) 94%,transparent);opacity:0;transition:opacity .2s}
+#ph.on{opacity:1}
+#ph .fr{position:relative;width:min(300px,78vw);height:min(600px,72vh);padding:9px;border:.5px solid var(--fg2)}
+#ph .fr::before{content:"";position:absolute;left:50%;top:3.5px;width:22px;margin-left:-11px;border-top:.5px solid var(--fg3)}
+#ph .fr::after{content:"";position:absolute;right:-4px;top:58px;height:26px;border-left:.5px solid var(--fg3)}
+#ph iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
+#ph button{font-size:10px;letter-spacing:.2em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid var(--fg3);font-weight:300}
+#toast{position:absolute;z-index:11;left:0;right:0;bottom:30px;text-align:center;font-size:10px;letter-spacing:.14em;color:var(--fg2);font-weight:300;pointer-events:none;opacity:0;transition:opacity .25s}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#ph{transition:none}}
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('hd')!=='small')document.body.classList.add('bighd');</script>
+<div id="stage">
+  <canvas id="deco" aria-hidden="true"></canvas>
+  <canvas id="nvw" aria-hidden="true"></canvas>
+  <div id="content">
+    <div id="hd"><h1><span class="en" aria-hidden="true">KIN</span>家里</h1><p id="cnt" aria-live="polite"></p></div>
+    <button id="look" type="button" aria-label="换成小星球名单"></button>
+    <canvas id="rtb" aria-hidden="true"></canvas>
+    <div id="deck" role="group" aria-label="家里的每一位，上下翻" tabindex="-1"><canvas id="fb" aria-hidden="true"></canvas><canvas id="ff" aria-hidden="true"></canvas></div>
+    <div id="note" role="status" hidden></div>
+    <div id="live" aria-live="polite"></div>
+    <div id="toast" role="status"></div>
+    <input type="file" id="f1" accept="image/*" hidden><input type="file" id="f2" accept="image/*" hidden>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+  <canvas id="fx"></canvas>
+</div>
+<div id="ph" role="dialog" aria-modal="true" aria-label="查岗"><div class="fr"><iframe title="祂的手机"></iframe></div><button type="button" id="phX">放下手机</button></div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="people-f.js?v=1115d"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

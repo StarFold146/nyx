@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='pocket',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>口袋</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+body{--lb:var(--blue);--slip:#f6f4ee} body.dark{--lb:#8794f2;--slip:#1c1d23}
+#deco{z-index:1}
+/* 页眉：邮袋图标、小号加粗的标题垫一个很淡的衬线英文词、下面一排小切换 */
+#hd{position:absolute;left:0;right:0;top:0;height:112px;z-index:5;pointer-events:none}
+#hd > *{pointer-events:auto}
+#ico{position:absolute;left:24px;top:54px;width:26px;height:26px;overflow:visible}
+#ico{--tk-face:var(--bg)}
+#ico .b{fill:var(--lb)}
+#ico .w{fill:none;stroke:var(--tk-face);stroke-width:.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#ico .l{fill:none;stroke:var(--lb);stroke-width:.33;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#ico .h{fill:none;stroke:var(--lb);stroke-width:.25;stroke-linecap:butt}
+#ico .pt circle{fill:var(--lb)}
+#ico .ptw circle{fill:var(--tk-face)}
+#ico .sh{fill:rgba(22,23,28,.11)}
+#ico .hi{fill:#fffdf7}
+#ico .fl{fill:color-mix(in srgb,var(--lb) 79%,#f1eee6)}
+#ico .fd{fill:color-mix(in srgb,var(--lb) 80%,#16171c)}
+#ico .edge{fill:none;stroke:color-mix(in srgb,var(--lb) 66%,#16171c);stroke-width:.6;stroke-linejoin:miter}
+body.dark #ico .sh{fill:rgba(0,0,0,.45)}
+body.dark #ico .hi{fill:rgba(255,255,255,.1)}
+body.dark #ico .fl{fill:color-mix(in srgb,var(--lb) 88%,#ffffff)}
+#ttl{position:absolute;left:58px;top:58px;line-height:1;font-weight:600;font-size:12.5px;letter-spacing:.02em;color:var(--fg)}
+#ttl .ghost{position:absolute;left:18px;top:1px;font-family:var(--fe);font-style:italic;font-weight:300;font-size:21px;letter-spacing:.06em;color:var(--fg);opacity:.07;white-space:nowrap;pointer-events:none}
+/* 页眉大字（11/13 定；?hd=small 看旧样）：英文放大垫底、中文缩小 */
+body.bighd #ttl b{font-size:11px;letter-spacing:.1em}
+body.bighd #ttl .ghost{left:-6px;top:-34px;font-size:78px;letter-spacing:.02em;opacity:.045;line-height:1}
+#ttl b{position:relative;font-weight:600}
+#tog{position:absolute;left:58px;top:75px;display:flex;gap:13px;align-items:baseline}
+#tog button{position:relative;font-size:9px;letter-spacing:.12em;color:var(--fg3);font-weight:400;padding:4px 0 5px;line-height:1;transition:color .2s}
+#tog button.on{color:var(--fg)}
+#tog button::after{content:"";position:absolute;left:0;right:.14em;bottom:1px;border-top:.5px solid var(--lb);transform:scaleX(0);transform-origin:0 50%;transition:transform .2s}
+#tog button.on::after{transform:none}
+#tog i{font-family:var(--fe);font-style:italic;font-size:8.5px;letter-spacing:0;margin-left:2px;color:var(--fg3);vertical-align:.25em}
+#tog .nd{position:absolute;right:-5px;top:3px;width:3.4px;height:3.4px;border-radius:50%;background:var(--lb)}
+#tog .nd[hidden]{display:none}
+/* 两态并排，切换时横着挪一页 */
+#panes{position:absolute;left:0;right:0;top:114px;bottom:0;overflow:hidden;z-index:4}
+#track{position:absolute;inset:0;display:flex;width:200%;transition:transform .22s cubic-bezier(.3,.7,.3,1)}
+body.v-td #track{transform:translateX(-50%)}
+.pane{position:relative;width:50%;height:100%}
+.scr{position:absolute;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - 30px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - 30px),transparent 100%)}
+.scr::-webkit-scrollbar{display:none}
+/* 搜索：一道细线 */
+#srch{position:absolute;left:24px;right:24px;top:10px;height:22px;display:flex;align-items:center;gap:7px;border-bottom:.5px solid var(--hair)}
+#srch svg{flex:none;width:10px;height:10px;overflow:visible}
+#q{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--fg);font-family:var(--fz);font-weight:300;font-size:12px;letter-spacing:.04em;padding:0;caret-color:var(--blue);-webkit-appearance:none;appearance:none;border-radius:0}
+#q::placeholder{color:var(--fg3)}
+#q::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+#srch .en{font-size:8.5px;color:var(--fg3);letter-spacing:.1em}
+/* 状态分格 */
+#tabs{position:absolute;left:24px;right:12px;top:40px;display:flex;flex-wrap:nowrap;gap:11px;white-space:nowrap;overflow:hidden}
+#tabs button{position:relative;font-size:9px;letter-spacing:.1em;color:var(--fg3);padding:3px 0 4px;line-height:1}
+#tabs button.on{color:var(--fg)}
+#tabs button.on::after{content:"";position:absolute;left:0;right:.1em;bottom:0;border-top:.5px solid var(--lb)}
+#tabs i{font-family:var(--fe);font-style:italic;font-size:8.5px;letter-spacing:0;margin-left:2px;vertical-align:.2em}
+#pkScroll{top:58px}
+#pkRows{position:relative;min-height:100%;padding:12px 0 70px}
+#seam{position:absolute;left:0;top:0;pointer-events:none}
+/* 一张纸条：不画框，左边一根细线从缝线牵过来；标题最多两行，摘要一行淡小字，网址收成底下一行「来源 · 域名」 */
+.slip{position:relative;display:block;width:var(--w);max-width:calc(100% - var(--x) - 14px);margin-left:var(--x);transform:rotate(var(--r));transform-origin:0 50%;background:transparent;padding:4px 0 3px;cursor:pointer;transition:transform .2s}
+.slip + .slip{margin-top:var(--gap,14px)}
+.slip.open{transform:rotate(0deg)}
+.slip.open::before{content:"";position:absolute;left:-7px;top:6px;bottom:4px;border-left:.5px solid var(--lb);opacity:.55}
+.slip .no{position:absolute;right:0;top:4px;font-family:var(--fe);font-style:italic;font-weight:500;font-size:7.5px;letter-spacing:.02em;color:var(--fg3);line-height:1;font-variant-numeric:lining-nums}
+.slip .no i{font-size:5.2px;letter-spacing:.06em;font-style:italic}
+.slip .tx{font-size:12.5px;line-height:1.55;letter-spacing:.02em;color:var(--fg);padding-right:26px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.slip .tx.ti{white-space:normal;font-size:12px;line-height:1.6}
+.slip .ex{margin-top:1px;padding-right:8px;font-size:10px;line-height:1.55;letter-spacing:.02em;color:var(--fg3);font-weight:300;word-break:break-word;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
+.slip.open .tx,.slip.open .ex{display:block;-webkit-line-clamp:unset}
+.slip.open .ex{max-height:38vh;overflow-y:auto;scrollbar-width:none;margin-top:3px}
+.slip .em{filter:grayscale(1);opacity:.5;font-size:.86em}
+.slip .tg,.td .tg{color:var(--fg3);font-weight:300;font-size:.92em}
+.slip.done .tx{color:var(--fg2);font-weight:300}
+.slip .mt{display:flex;align-items:baseline;gap:7px;margin-top:3px;font-size:8px;letter-spacing:.1em;color:var(--fg3);line-height:1;font-weight:300;white-space:nowrap;min-width:0}
+.slip .mt .src{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--fg3);text-decoration:none;padding:4px 0;margin:-4px 0}
+.slip .mt .src i{font-family:var(--fe);font-style:italic;font-size:8.5px;letter-spacing:.04em;margin-left:4px}
+.slip .mt .src i::before{content:"· ";font-style:normal}
+.slip .mt .src b{font-weight:300;font-size:7px;margin-left:2px;color:var(--lb)}
+.slip .mt .dt{flex:none;font-family:var(--fe);font-size:8.5px;letter-spacing:.06em}
+.slip .mt .st{flex:none;margin-left:auto;font-size:8px;letter-spacing:.12em;color:var(--fg2);padding:4px 0 4px 8px;margin-top:-4px;margin-bottom:-4px;line-height:1}
+.slip.unread .mt .st{color:var(--fg)}
+.slip .acts{display:none;align-items:center;gap:9px;margin-top:6px;padding-top:5px;border-top:.4px dashed color-mix(in srgb,var(--fg) 26%,transparent)}
+.slip.open .acts{display:flex}
+.slip .acts button,.slip .acts .og{font-size:9px;letter-spacing:.12em;color:var(--fg2);padding:3px 0;line-height:1;text-decoration:none}
+.slip .acts .og{margin-left:auto}
+.slip .acts .og i{font-style:normal;font-size:8px;margin-left:2px;color:var(--lb)}
+.slip .acts button.warn{color:var(--lb)}
+.slip .acts .dv{width:.5px;height:8px;background:var(--fg3)}
+.slip textarea{display:block;width:100%;max-height:40vh;border:0;outline:0;background:transparent;resize:none;color:var(--fg);font-family:var(--fz);font-size:12.5px;line-height:1.6;letter-spacing:.03em;padding:0;caret-color:var(--blue);border-bottom:.5px solid var(--lb);border-radius:0;overflow-y:auto;scrollbar-width:none}
+.slip.new{animation:drop .3s cubic-bezier(.2,.7,.2,1) both}
+@keyframes drop{from{opacity:0;transform:translateY(-6px) rotate(var(--r))}to{opacity:1;transform:rotate(var(--r))}}
+/* 末尾一行：「＋」和一道细线输入 */
+.add{position:relative;display:flex;align-items:flex-start;gap:8px;margin:18px 26px 0 40px;border-bottom:.4px solid var(--hair);padding-bottom:3px}
+.add .plus{flex:none;font-family:var(--fe);font-weight:300;font-size:15px;line-height:20px;color:var(--lb);width:10px}
+.add textarea,.add input{flex:1;min-width:0;border:0;outline:0;background:transparent;resize:none;color:var(--fg);font-family:var(--fz);font-weight:300;font-size:12px;line-height:20px;letter-spacing:.03em;padding:0;caret-color:var(--blue);max-height:140px;-webkit-appearance:none;appearance:none;border-radius:0;overflow-y:auto;scrollbar-width:none}
+.add textarea::placeholder,.add input::placeholder{color:var(--fg3)}
+.add .go{flex:none;font-size:9px;letter-spacing:.14em;color:var(--lb);line-height:20px;padding:0 0 0 4px;visibility:hidden}
+.add.has .go{visibility:visible}
+/* 安静的一行：空、加载、失败、没钥匙 */
+.quiet{margin:14px 0 0 40px;font-size:9.5px;letter-spacing:.12em;color:var(--fg3);line-height:1.6}
+.quiet a,.quiet button{color:var(--fg2);text-decoration:none;border-bottom:.5px solid var(--fg3);font-size:inherit;letter-spacing:inherit;padding:0}
+/* 待办：一张细线的清单纸 */
+#tdScroll{top:8px}
+#sheet{position:relative;margin:10px 24px 70px 26px;border:0;border-top:.4px solid color-mix(in srgb,var(--fg) 34%,transparent);background:transparent;padding:11px 12px 12px 0;transform:rotate(-.5deg);transform-origin:50% 0}
+#sheet::before{content:"";position:absolute;left:30px;top:0;bottom:0;border-left:.5px solid var(--lb);opacity:.35}
+#sheet .sh{display:flex;align-items:baseline;justify-content:space-between;padding:0 0 6px 40px;font-size:8.5px;letter-spacing:.16em;color:var(--fg3);line-height:1}
+#sheet .sh .en{font-size:9px;letter-spacing:.08em}
+.td{position:relative;display:flex;align-items:flex-start;gap:9px;padding:4px 0 3px 40px;border-bottom:.4px solid color-mix(in srgb,var(--fg) 8%,transparent);cursor:pointer}
+.td .bx{position:absolute;left:15px;top:8.6px;width:9px;height:9px;overflow:visible}
+.td .t{flex:1;min-width:0;font-size:12.5px;line-height:1.5;letter-spacing:.03em;color:var(--fg);word-break:break-word;overflow-wrap:anywhere}
+.td .t .s{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.td.full .t .s{display:block;-webkit-line-clamp:unset}
+.td .em{filter:grayscale(1);opacity:.5;font-size:.86em}
+.td .u{font-family:var(--fe);font-style:italic;font-size:9px;letter-spacing:.04em;color:var(--fg3);text-decoration:none;margin:0 2px;white-space:nowrap}
+.td .u b{font-style:normal;font-weight:300;font-size:7px;margin-left:1px;color:var(--lb)}
+.td .fr{flex:none;font-size:8px;letter-spacing:.12em;color:var(--fg3);line-height:18.75px;white-space:nowrap}
+.td.done .t{color:var(--fg3);font-weight:300}
+.td.done .t .s{text-decoration:line-through;text-decoration-thickness:.5px;text-decoration-color:var(--fg2)}
+.td .x{flex:none;width:18px;height:18px;margin:0 -5px 0 0;opacity:.32}
+.td .x svg{width:5px;height:5px;overflow:visible}
+.td .nw{position:absolute;left:6px;top:11.3px;width:3.6px;height:3.6px;border-radius:50%;background:var(--lb)}
+.td.in{animation:rise .3s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+#sheet .add{margin:10px 0 0 40px}
+#sheet .add .plus{position:absolute;left:-26px}
+#sheet .quiet{margin:8px 0 2px 40px}
+#toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:15;font-size:9.5px;letter-spacing:.14em;color:var(--fg2);background:transparent;padding:3px 8px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#track,.slip,#tog button::after{transition:none}.slip.new,.td.in{animation:none}}
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('hd')!=='small')document.body.classList.add('bighd');</script>
+<div id="stage">
+  <canvas id="deco" aria-hidden="true"></canvas>
+  <div id="content">
+    <header id="hd">
+      <svg id="ico" viewBox="-13 -13 26 26" aria-hidden="true"></svg>
+      <h1 id="ttl"><span class="ghost">Pocket</span><b>口袋</b></h1>
+      <div id="tog" role="tablist" aria-label="口袋里的两样">
+        <button type="button" role="tab" data-v="pk" class="on" aria-selected="true">纸条<i id="nPk"></i></button>
+        <button type="button" role="tab" data-v="td" aria-selected="false">待办<i id="nTd"></i><em class="nd" id="tdDot" hidden></em></button>
+      </div>
+    </header>
+    <div id="panes"><div id="track">
+      <section id="pk" class="pane" aria-label="纸条">
+        <label id="srch"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="4" cy="4" r="3.1" fill="none" stroke="var(--fg2)" stroke-width=".6"/><path d="M6.3 6.3L9.4 9.4" stroke="var(--fg2)" stroke-width=".6"/></svg><input id="q" type="search" placeholder="搜一搜" autocomplete="off" aria-label="搜口袋"><span class="en" id="qn"></span></label>
+        <div id="tabs" role="tablist" aria-label="按状态看"></div>
+        <div id="pkScroll" class="scr"><div id="pkRows"><canvas id="seam" aria-hidden="true"></canvas><div id="slips"></div>
+          <form id="pkAdd" class="add"><span class="plus" aria-hidden="true">+</span><textarea id="pkIn" rows="1" placeholder="记点长的…" aria-label="放进口袋"></textarea><button class="go" type="submit">放进去</button></form>
+        </div></div>
+      </section>
+      <section id="td" class="pane" aria-label="待办">
+        <div id="tdScroll" class="scr"><div id="sheet">
+          <div class="sh"><span>清单</span><span class="en" id="tdDate"></span></div>
+          <div id="tdRows"></div>
+          <form id="tdAdd" class="add"><span class="plus" aria-hidden="true">+</span><input id="tdIn" type="text" placeholder="添一条" maxlength="120" autocomplete="off" aria-label="添加待办"><button class="go" type="submit">添加</button></form>
+        </div></div>
+      </section>
+    </div></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+</div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="pocket.js"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

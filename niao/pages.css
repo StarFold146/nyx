@@ -1,0 +1,27 @@
+/* 聊天页、听歌页共用：纸白 / 墨黑 / 铅笔灰 / 一个蓝。和主页 main.js 的色值一致 */
+:root{
+  --paper:#f1eee6; --ink:#16171c; --line:#2b2c32; --pen:#55575c; --grey:#97989c; --lgrey:#c6c3bb; --blue:#1c31b6;
+  --bg:var(--paper); --fg:var(--ink); --fg2:var(--pen); --fg3:var(--grey); --hair:rgba(43,44,50,.55);
+  --fe:"Cormorant Garamond","Cormorant",Georgia,"Times New Roman",serif;
+  --fz:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+}
+body.dark{ --bg:var(--ink); --fg:var(--paper); --fg2:#9c9ca2; --fg3:#6e6f76; --hair:rgba(241,238,230,.42); }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);overscroll-behavior:none;color:var(--fg)}
+body{font-family:var(--fz);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+#stage{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,62vh);min-width:min(100vw,320px);overflow:hidden;background:var(--bg)}
+#deco,#fx{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#fx{z-index:20}
+#grain{position:fixed;inset:0;pointer-events:none;z-index:30;background-repeat:repeat;background-size:150px 150px;opacity:1}
+#veil{position:fixed;inset:0;z-index:40;pointer-events:none;display:block}
+#content{position:absolute;inset:0}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:.5px solid var(--grey);outline-offset:3px}
+
+/* 左上的返回月亮 */
+#back{position:absolute;left:10px;top:14px;width:36px;height:36px;z-index:12;display:block}
+#back svg{width:100%;height:100%;overflow:visible}
+.en{font-family:var(--fe);font-style:italic;font-weight:300}
+.tiny{font-family:var(--fe),var(--fz);font-weight:300;font-size:10px;letter-spacing:.12em;color:var(--fg2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }

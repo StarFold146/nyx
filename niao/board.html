@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='board',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>工程板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+body{--lb:var(--blue);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace,"Noto Serif SC","Songti SC",serif}
+body.dark{--lb:#8794f2}
+#deco{z-index:1}
+/* 页眉：一枚定稿的板子图标 + 小号加粗的「工程板」，底下垫一个很淡的 BOARD */
+#hd{position:absolute;left:52px;top:21px;z-index:5;display:flex;align-items:center;gap:7px;pointer-events:none}
+#hd svg{width:28px;height:22px;overflow:visible;display:block}
+#hd h1{position:relative;font-size:13px;font-weight:600;letter-spacing:.06em;line-height:1;color:var(--fg)}
+#hd h1 .en{position:absolute;left:-3px;top:-8px;font-size:22px;letter-spacing:.08em;color:var(--fg);opacity:.07;white-space:nowrap}
+/* 页眉大字（11/13 定；?hd=small 看旧样）：英文放大到横过半张纸、更淡，中文缩小，拉开字号落差。默认不开，留着对比 */
+body.bighd #hd h1{font-size:11px;letter-spacing:.1em}
+body.bighd #hd h1 .en{left:-10px;top:-40px;font-size:86px;letter-spacing:.02em;opacity:.045;pointer-events:none;line-height:1}
+#hd .ico .b{fill:var(--lb)}
+#hd .ico .w{fill:none;stroke:var(--bg);stroke-width:.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#hd .ico .l{fill:none;stroke:var(--lb);stroke-width:.33;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#hd .ico .h{fill:none;stroke:var(--lb);stroke-width:.25;stroke-linecap:butt}
+#hd .ico .pt circle{fill:var(--lb)}
+#hd .ico .ptw circle{fill:var(--bg)}
+#hd .ico .sh{fill:rgba(22,23,28,.11)}
+#hd .ico .hi{fill:#fffdf7}
+#hd .ico .fl{fill:color-mix(in srgb,var(--lb) 79%,#f1eee6)}
+#hd .ico .fd{fill:color-mix(in srgb,var(--lb) 80%,#16171c)}
+#hd .ico .edge{fill:none;stroke:color-mix(in srgb,var(--lb) 66%,#16171c);stroke-width:.6;stroke-linejoin:miter}
+body.dark #hd .ico .sh{fill:rgba(0,0,0,.45)}
+body.dark #hd .ico .hi{fill:rgba(255,255,255,.1)}
+body.dark #hd .ico .fl{fill:color-mix(in srgb,var(--lb) 88%,#ffffff)}
+
+/* 图纸上的编号圈：画在画布上，这里只是点的热区 */
+#calls{position:absolute;inset:0;z-index:5;pointer-events:none}
+#stage:has(.card) #calls{z-index:3}
+#calls button{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;pointer-events:auto}
+
+/* 票单：一栏一节，一行一张；容器本身不吃点击（让底下的编号圈能点），行和票面吃 */
+#list{position:absolute;left:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;z-index:4;pointer-events:auto;touch-action:pan-y;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 26px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 26px),transparent 100%)}
+#list::-webkit-scrollbar{display:none}
+#rows{padding:16px 0 44px 20px}
+.sec{position:relative;margin-bottom:24px}
+.sh{position:relative;display:flex;align-items:baseline;gap:6px;height:18px;margin-bottom:3px;font-size:9px;font-weight:600;letter-spacing:.16em;color:var(--fg);line-height:1}
+.sh .en{position:absolute;left:-2px;top:-7px;font-size:17px;letter-spacing:.1em;color:var(--fg);opacity:.1;pointer-events:none;font-weight:300}
+.sh i{font-style:normal;font-family:var(--mono);font-size:7.5px;font-weight:400;letter-spacing:0;color:var(--fg3)}
+.row{display:flex;align-items:baseline;gap:7px;width:var(--rw);padding:4.5px 0;text-align:left;pointer-events:auto}
+.row .no{flex:none;width:23px;font-family:var(--mono);font-size:7.5px;letter-spacing:0;color:var(--fg3)}
+.row.p0 .no{color:var(--lb)}
+.row .tt{flex:1;min-width:0;font-size:11.5px;letter-spacing:.04em;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:.5px solid transparent;transition:border-color .2s}
+.sec.done .row .tt{color:var(--fg3);font-weight:300}
+.row.on .tt{border-bottom-color:var(--lb)}
+.sec.done .row.on .tt{color:var(--fg2)}
+.none{padding:3px 0 2px 30px;font-size:9px;letter-spacing:.14em;color:var(--fg3);font-weight:300}
+.more{display:block;margin:2px 0 0 30px;padding:4px 0;font-size:9px;letter-spacing:.14em;color:var(--fg2);font-weight:300;pointer-events:auto}
+.more::after{content:" ›"}
+#note{padding:2px 0 0 0;font-size:9.5px;letter-spacing:.14em;color:var(--fg3);font-weight:300;pointer-events:auto;width:var(--rw)}
+#note a,#note button{color:var(--fg2);border-bottom:.5px solid var(--fg3);text-decoration:none;font-size:inherit;letter-spacing:inherit}
+#note[hidden]{display:none}
+
+/* 末尾一行：「＋」细线输入；一点进去，底下展开优先级、大小、指给、白天、细节 */
+.add{width:var(--rw);pointer-events:auto;margin-top:-6px}
+.add .ln{display:flex;align-items:center;gap:7px}
+.add .pl{flex:none;width:23px;font-family:var(--fe);font-size:14px;font-weight:300;color:var(--fg3);line-height:1}
+.add input{flex:1;min-width:0;font:inherit;font-size:11.5px;letter-spacing:.04em;color:var(--fg);background:none;border:0;border-bottom:.5px solid var(--hair);border-radius:0;padding:4px 0;outline:none;-webkit-appearance:none}
+.add input::placeholder{color:var(--fg3);opacity:1;font-weight:300;letter-spacing:.2em;font-size:11px}
+.add input:focus{border-bottom-color:var(--lb)}
+.add .opt{display:none;padding:6px 0 0 30px}
+.add.open .opt{display:block}
+.add .opt .tg{display:flex;flex-wrap:wrap;gap:2px 11px}
+.add .opt button{font-size:9px;letter-spacing:.12em;color:var(--fg2);padding:3px 0;font-weight:300}
+.add .opt button b{font-weight:400;color:var(--fg);font-family:var(--mono);font-size:8px;letter-spacing:0}
+.add .opt input{font-size:11px;margin-top:3px;width:100%}
+.add .opt .go{display:block;margin-top:6px;font-size:9.5px;letter-spacing:.2em;color:var(--lb);border-bottom:.5px solid var(--lb);padding:2px 0;font-weight:400}
+
+/* 票面：一张细线框的工单，四角内凹、两侧一对半圆缺口和一道撕线把底下改状态那截隔开 */
+.card{position:relative;width:var(--cw);margin:3px 0 12px -6px;padding:12px 13px 11px;pointer-events:auto;background:var(--bg);transform-origin:20px 0}
+.card.in{animation:cardIn .2s cubic-bezier(.2,.7,.3,1) both}
+@keyframes cardIn{from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){.card.in{animation:none}}
+.card svg.fr{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.card svg.fr .o{fill:none;stroke:var(--fg2);stroke-width:.5}
+.card svg.fr .i{fill:none;stroke:var(--fg3);stroke-width:.35}
+.card svg.fr .t{fill:none;stroke:var(--fg3);stroke-width:.4;stroke-dasharray:1.2 2}
+.card svg.fr .dt{fill:var(--fg3)}
+.card .top{position:relative;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.card .num{font-family:var(--fe);font-style:italic;font-weight:300;font-size:14px;letter-spacing:.04em;color:var(--fg);line-height:1}
+.card .num small{font-size:8px;margin-right:1px;font-style:normal}
+.card .stt{font-size:8px;letter-spacing:.18em;color:var(--fg2);white-space:nowrap}
+.card .stt b{font-family:var(--mono);font-weight:400;font-size:7.5px;letter-spacing:0;color:var(--fg)}
+.card .stt b.p0{color:var(--lb)}
+.card h3{position:relative;margin:7px 0 4px;font-size:12.5px;font-weight:600;letter-spacing:.04em;line-height:1.45;color:var(--fg);overflow-wrap:anywhere}
+.card .meta{position:relative;font-size:8px;letter-spacing:.1em;line-height:1.75;color:var(--fg2);font-weight:300}
+.card .meta em{font-style:normal;color:var(--lb)}
+.card .files{position:relative;margin-top:3px;font-family:var(--mono);font-size:7.5px;letter-spacing:0;line-height:1.6;color:var(--fg2);word-break:break-all}
+.card .body{position:relative;margin-top:8px;font-size:11px;line-height:1.65;letter-spacing:.03em;color:var(--fg);white-space:pre-wrap;overflow-wrap:anywhere;font-weight:300}
+.card .proof{position:relative;display:inline-block;margin-top:6px;font-size:9px;letter-spacing:.12em;color:var(--lb);border-bottom:.5px solid var(--lb);text-decoration:none}
+.card .log{position:relative;margin-top:8px;padding-left:7px;border-left:.5px solid var(--hair);font-family:var(--mono);font-size:7.5px;letter-spacing:0;line-height:1.7;color:var(--fg3);white-space:pre-wrap;overflow-wrap:anywhere}
+.card .stub{position:relative;margin-top:14px;padding-top:9px}
+.card .to{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 10px;font-size:8px;letter-spacing:.14em;color:var(--fg3)}
+.card .to button{font-size:9px;letter-spacing:.08em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid transparent;font-weight:300}
+.card .to button.on{color:var(--lb);border-bottom-color:var(--lb);font-weight:400}
+.card .acts{display:flex;flex-wrap:wrap;gap:2px 13px;margin-top:5px}
+.card .acts button{font-size:9px;letter-spacing:.14em;color:var(--fg);padding:4px 0 2px;border-bottom:.5px solid var(--fg3);font-weight:300}
+.card .acts button.main{color:var(--lb);border-bottom-color:var(--lb);font-weight:400}
+.card .acts button.arm{color:var(--lb);border-bottom-style:dashed;border-bottom-color:var(--lb)}
+.card .why{display:flex;align-items:center;gap:8px;margin-top:8px}
+.card .why input{flex:1;min-width:0;font:inherit;font-size:11px;color:var(--fg);background:none;border:0;border-bottom:.5px solid var(--lb);border-radius:0;padding:3px 0;outline:none}
+.card .why input::placeholder{color:var(--fg3);opacity:1;letter-spacing:.16em;font-size:10px;font-weight:300}
+.card .why button{font-size:9.5px;letter-spacing:.14em;color:var(--lb)}
+
+/* 右下角的图签：哪张图、几张票、比例和日子 */
+#tb{position:absolute;z-index:2;display:grid;grid-template-columns:1.1fr 1.6fr .8fr;border:.5px solid var(--fg3);pointer-events:none}
+#tb>div{padding:4px 5px 3px;border-left:.5px solid var(--fg3);font-size:7.5px;letter-spacing:.12em;line-height:1.35;color:var(--fg2);font-weight:300;white-space:nowrap;overflow:hidden}
+#tb>div:first-child{border-left:0}
+#tb.narrow{grid-template-columns:.9fr 1.7fr}
+#tb.narrow>div:last-child{display:none}
+.card .meta span{white-space:nowrap}
+#tb b{display:block;font-size:8px;font-weight:600;letter-spacing:.14em;color:var(--fg)}
+#tb .en{display:block;font-size:8px;letter-spacing:.08em;color:var(--fg3)}
+#tb em{font-style:normal;font-family:var(--mono);font-size:7.5px;letter-spacing:0;color:var(--fg);margin:0 4px 0 2px}
+#tb .n{font-family:var(--mono);letter-spacing:0;font-size:7.5px}
+#toast{position:absolute;left:50px;z-index:11;font-size:9.5px;letter-spacing:.16em;color:var(--fg2);font-weight:300;pointer-events:none;opacity:0;transition:opacity .2s}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('hd')!=='small')document.body.classList.add('bighd');</script>
+<div id="stage">
+  <canvas id="deco" aria-hidden="true"></canvas>
+  <div id="content">
+    <div id="hd"><svg class="ico" viewBox="-14 -11 28 22" aria-hidden="true"></svg><h1><span class="en" aria-hidden="true">BOARD</span>工程板</h1></div>
+    <div id="calls" aria-label="图上的编号"></div>
+    <div id="tb" aria-hidden="true"></div>
+    <div id="list" aria-label="票单"><div id="rows"><p id="note" hidden></p><div id="secs"></div>
+      <form class="add" id="add" autocomplete="off"><div class="ln"><span class="pl" aria-hidden="true">+</span><input id="addt" name="t" placeholder="记一张" aria-label="新票的标题" maxlength="120" enterkeyhint="done"></div>
+        <div class="opt"><div class="tg"><button type="button" data-o="pri">优先 <b>P1</b></button><button type="button" data-o="size">大小 <b>M</b></button><button type="button" data-o="to">没指定</button><button type="button" data-o="dw">白天不动</button></div>
+          <input name="b" placeholder="细节（可以不写）" aria-label="细节" maxlength="4000"><button type="submit" class="go">记下</button></div></form>
+    </div></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+</div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="board.js"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

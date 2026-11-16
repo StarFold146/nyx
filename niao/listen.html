@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}#song{max-width:160px}
+#song b.long{font-size:15px;letter-spacing:.16em;line-height:1.3;margin-top:-3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#song .by,#song .en{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lyr p{overflow:hidden;text-overflow:ellipsis}
+#toast{display:block;margin-top:12px;font-size:10px;letter-spacing:.14em;color:var(--fg2);opacity:0;transition:opacity .2s;white-space:nowrap}
+#toast.on{opacity:1}
+#msg{position:absolute;z-index:4;font-size:11.5px;letter-spacing:.12em;font-weight:300;color:var(--fg2);line-height:1.5}
+#msg a{color:var(--fg);text-decoration:none;border-bottom:.5px solid var(--hair)}
+#tgl{position:absolute;z-index:5}
+#tools{position:absolute;right:16px;z-index:6;display:flex;align-items:center}
+#tools button{display:flex;align-items:center;gap:5px;padding:10px 6px;font-family:var(--fz);font-weight:300;font-size:10px;letter-spacing:.14em;color:var(--fg2);line-height:1}
+#tools button[hidden]{display:none}
+#tools i{width:.5px;height:9px;background:var(--hair);margin:0 4px}
+#tools svg{width:10px;height:12px;overflow:visible}
+#tools .k{fill:none;stroke:var(--fg);stroke-width:.6;stroke-linejoin:miter;stroke-linecap:butt}
+#tools .f{fill:var(--blue)}
+#like .f{opacity:0}#like.on .f{opacity:1}#like.on{color:var(--fg)}
+/* 点歌：盖在歌词和控件上的一页纸，顶上一根细线，唱片还在上面转 */
+#shelf{position:absolute;left:0;right:0;bottom:0;z-index:8;background:var(--bg);padding:0 22px;display:flex;flex-direction:column;opacity:0;transform:translateY(6px);transition:opacity .2s ease-out,transform .2s ease-out}
+#shelf.on{opacity:1;transform:none}
+#shelf[hidden]{display:none}
+#shelf::before{content:"";position:absolute;left:12px;right:12px;top:0;height:.5px;background:var(--hair)}
+#shelf::after{content:"";position:absolute;left:22px;top:-3px;width:.5px;height:6.5px;background:var(--fg2)}
+.sh-hd{display:flex;align-items:center;height:34px;flex:none}
+#tabs{display:flex;gap:2px;flex:1;min-width:0}
+#tabs button{position:relative;padding:10px 7px 9px;font-size:10px;letter-spacing:.18em;font-weight:300;color:var(--fg3);line-height:1}
+#tabs button:first-child{padding-left:0}
+#tabs button.on{color:var(--fg);font-weight:400}
+#tabs button.on::after{content:"";position:absolute;left:7px;bottom:3px;width:9px;height:1px;background:var(--blue)}
+#tabs button:first-child.on::after{left:0}
+#shut{width:30px;height:30px;margin-right:-8px;flex:none;display:flex;align-items:center;justify-content:center}
+#shut svg{width:9px;height:9px;overflow:visible}
+#shut path{stroke:var(--fg2);stroke-width:.7;fill:none;stroke-linecap:butt}
+#sub{display:flex;align-items:baseline;gap:10px;height:22px;flex:none;font-size:10px;letter-spacing:.12em;color:var(--fg2);min-width:0}
+#sub[hidden]{display:none}
+#plBack{font-size:10px;letter-spacing:.12em;color:var(--fg2);padding:4px 0;flex:none}
+#subT{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#find{display:flex;align-items:center;height:34px;flex:none;border-bottom:.5px solid var(--hair);margin-bottom:6px}
+#find[hidden]{display:none}
+#q{flex:1;min-width:0;background:none;border:0;outline:0;font:inherit;font-size:12px;font-weight:300;letter-spacing:.08em;color:var(--fg);padding:8px 0;border-radius:0;-webkit-appearance:none}
+#q::placeholder{color:var(--fg3)}
+#find button{width:30px;height:30px;margin-right:-8px;display:flex;align-items:center;justify-content:center}
+#find svg{width:14px;height:8px;overflow:visible}
+#find path{stroke:var(--fg);stroke-width:.6;fill:none}
+#rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 0 28px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent)}
+.row{display:flex;align-items:baseline;width:100%;min-height:28px;padding:7px 0;text-align:left;gap:8px;min-width:0}
+.row i{flex:none;width:16px;font-family:var(--fe);font-style:normal;font-weight:300;font-size:9px;letter-spacing:.04em;color:var(--fg3);position:relative}
+.row b{font-weight:400;font-size:12px;letter-spacing:.06em;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.row small{font-size:9px;letter-spacing:.1em;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 10 auto}
+.row.pl small{margin-left:auto;font-family:var(--fe);font-size:10px}
+.row.cur i{color:transparent}
+.row.cur i::after{content:"";position:absolute;left:1px;top:50%;width:4.5px;height:4.5px;margin-top:-3px;background:var(--blue);transform:rotate(45deg)}
+.hint{font-size:11px;letter-spacing:.12em;color:var(--fg2);font-weight:300;padding:10px 0;line-height:1.6}
+.hint a{color:var(--fg);text-decoration:none;border-bottom:.5px solid var(--hair)}
+@media (prefers-reduced-motion: reduce){ #shelf,#toast{transition:none} }
+</style>
+<script>(function(){var d=document.documentElement,p='listen',c=(/[?&]dark=/.test(location.search)?/[?&]dark=0/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='day'}catch(e){return false}})())?'#f1eee6':'#16171c';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#16171c">
+<title>一起听 · 井</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#song{position:absolute;left:22px;z-index:3;pointer-events:none;line-height:1}
+#song b{display:block;font-weight:300;font-size:19px;letter-spacing:.24em;color:var(--fg)}
+#song .by{display:block;margin-top:10px;font-size:11px;letter-spacing:.3em;color:var(--fg2)}
+#song .en{display:block;margin-top:8px;font-size:11px;letter-spacing:.08em;color:var(--fg3)}
+.hit{position:absolute;z-index:5;border-radius:50%}
+#lyr{position:absolute;left:0;right:0;z-index:3;pointer-events:none;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 34px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 34px),transparent 100%)}
+#lyr p{position:absolute;left:0;top:0;white-space:nowrap;font-size:11.5px;letter-spacing:.12em;font-weight:300;color:var(--fg2);will-change:transform,opacity}
+#lyr p.on{color:var(--fg);font-weight:400;font-size:13px}
+#lyr p::before{content:"";position:absolute;left:-16px;top:.9em;width:10px;height:24px;border-top:.5px solid var(--fg3);border-right:.5px solid var(--fg3);opacity:.55}
+#tog{position:absolute;z-index:3;pointer-events:none;line-height:1}
+#tog .tiny{display:block}
+#times{position:absolute;z-index:3;pointer-events:none}
+#times span{position:absolute;font-family:var(--fe);font-weight:300;font-size:10px;letter-spacing:.12em;color:var(--fg2);white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" aria-label="一张从正上方看下去的旋转楼梯井当唱片，外沿一条蓝丝带走进度（可沿圈拖），正中是裁成圆的歌曲封面"></canvas>
+  <div id="song"><b>井底有月</b><span class="by">晚渡</span><span class="en">side a · no. 4</span><span id="toast" class="tiny" role="status" aria-live="polite"></span></div>
+  <div id="lyr" aria-live="off"></div>
+  <p id="msg" hidden></p>
+  <div id="tog"><span class="tiny">一起听</span></div>
+  <button id="tgl" aria-pressed="true" aria-label="一起听"></button>
+  <div id="times"><span id="tcur">1:12</span><span id="tall">3:40</span></div>
+  <button id="prev" class="hit" aria-label="上一首"></button>
+  <button id="play" class="hit" aria-label="播放"></button>
+  <button id="next" class="hit" aria-label="下一首"></button>
+  <div id="tools">
+    <button id="mode" aria-label="播放顺序"><span>顺序</span></button><i></i>
+    <button id="like" aria-label="喜欢" aria-pressed="false" hidden><svg viewBox="-5 -7 10 14" aria-hidden="true"><path class="f" d="M0,-5.4 L-4,0 L0,5.4 Z"/><path class="k" d="M0,-5.4 L4,0 L0,5.4 L-4,0 Z M0,-7 V7"/></svg><span>喜欢</span></button>
+    <button id="pick" aria-label="点歌" aria-expanded="false"><svg viewBox="-5 -6 10 12" aria-hidden="true"><path class="f" d="M-4,4 L-4,-4 L4,-4 Z"/><path class="k" d="M-4,-4 H4 V4 H-4 Z M-5.4,5.4 L5.4,-5.4"/></svg><span>点歌</span></button>
+  </div>
+  <section id="shelf" hidden aria-label="点歌">
+    <div class="sh-hd"><nav id="tabs"></nav><button id="shut" aria-label="收起"><svg viewBox="-5 -5 10 10" aria-hidden="true"><path d="M-4.5,-4.5 L4.5,4.5 M4.5,-4.5 L-4.5,4.5"/></svg></button></div>
+    <div id="sub" hidden><button id="plBack">‹ 歌单</button><span id="subT"></span></div>
+    <form id="find" hidden><input id="q" type="search" placeholder="歌名、歌手" enterkeyhint="search" autocomplete="off" aria-label="搜歌"><button type="submit" aria-label="搜"><svg viewBox="0 -4 14 8" aria-hidden="true"><path d="M0,0 H13 M9,-3.5 L13,0 L9,3.5"/></svg></button></form>
+    <div id="rows"></div>
+  </section>
+  <button id="back" aria-label="回主页"></button>
+  <canvas id="fx"></canvas>
+</div>
+<audio id="au" preload="auto" playsinline></audio>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="listen.js?v=1115b"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

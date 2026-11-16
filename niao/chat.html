@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html.pre body{visibility:hidden}</style>
+<script>(function(){var d=document.documentElement,p='chat',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>阿昼 · 来信</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pages.css">
+<style>
+#eye{position:absolute;z-index:3;width:64px;height:44px;pointer-events:none;overflow:visible}
+#who{position:absolute;z-index:3;line-height:1}
+#who b{display:block;font-weight:600;font-size:15px;letter-spacing:.08em;color:var(--fg)}
+/* 状态行：10.5px 铅笔灰；闲着一颗蓝点，在写三颗跳的蓝点，工具名等宽，在想一只像素小螃蟹 */
+#who .st{display:flex;align-items:center;gap:5px;height:10px;margin-top:6px;font-size:8.5px;letter-spacing:.12em;color:var(--fg2);font-weight:300;white-space:nowrap}
+#who .st em{font-style:normal}
+#who .st em.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz);font-size:8px;letter-spacing:.02em}
+#who .st .dot{width:3.2px;height:3.2px;border-radius:50%;background:var(--lb)}
+#who .st .dots{display:flex;gap:2px;align-items:center}
+#who .st .dots i{width:2.4px;height:2.4px;border-radius:50%;background:var(--lb);animation:ink 1.3s infinite ease-in-out}
+#who .st .dots i:nth-child(2){animation-delay:.16s}#who .st .dots i:nth-child(3){animation-delay:.32s}
+#who .st canvas.crab{display:block;image-rendering:pixelated}
+/* 11/13 状态行可以点：热区上下各撑 5px；有分身在忙时末尾一个蓝色小「+N」 */
+#who .st{cursor:pointer;padding:5px 10px 5px 0;margin-top:1px;box-sizing:content-box;-webkit-tap-highlight-color:transparent}
+#who .st b.ag{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz);font-weight:400;font-size:7.5px;letter-spacing:0;color:var(--lb);margin-left:-1px}
+/* 点开的那一列：跟仪表一样的测绘线读数，左边一根淡蓝竖线，每行一小道横刻度 */
+#stp{position:absolute;z-index:12;padding:5px 12px 7px 0;border-left:.5px solid color-mix(in srgb,var(--lb) 45%,transparent);background:var(--bg);box-shadow:10px 0 16px 6px var(--bg);transform-origin:0 0;box-sizing:border-box}
+#stp[hidden]{display:none}
+#stp.open{animation:grow .2s cubic-bezier(.2,.7,.3,1) both}
+#stp.shut{animation:grow .16s cubic-bezier(.5,0,.8,.4) reverse both}
+#stp .gr{position:relative;display:flex;align-items:baseline;gap:7px;padding-left:9px;min-height:15px;line-height:15px;font-size:8.5px;letter-spacing:.08em;color:var(--fg2);font-weight:300;white-space:nowrap;min-width:0}
+#stp .gr::before{content:"";position:absolute;left:0;top:7.5px;width:5px;border-top:.5px solid var(--lb)}
+#stp .gr .k{flex:none}
+#stp .gr b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz);font-weight:400;font-size:8.5px;letter-spacing:.02em;color:var(--fg);overflow:hidden;text-overflow:ellipsis;min-width:0}
+#stp .gr.sub{padding-left:16px;color:var(--fg3)}
+#stp .gr.sub::before{left:7px;width:4px;border-top-color:var(--fg3)}
+#stp .gr.sub span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (prefers-reduced-motion:reduce){#stp.open,#stp.shut{animation:none}}
+#stamp{position:absolute;z-index:3;width:24px;height:30px;overflow:visible;pointer-events:none;transform:rotate(4deg)}
+#menu{position:absolute;right:8px;top:14px;width:40px;height:34px;z-index:12}
+#menu svg{width:100%;height:100%;overflow:visible}
+#list{position:absolute;left:0;right:0;top:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;z-index:4;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent var(--m0),#000 var(--m1),#000 calc(100% - 26px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,transparent var(--m0),#000 var(--m1),#000 calc(100% - 26px),transparent 100%)}
+#list::-webkit-scrollbar{display:none}
+body{--lb:var(--blue)} body.dark{--lb:#8794f2}
+#rows{position:relative;padding-bottom:30px}
+/* 一段信：同一个人连着说的几句接成一段连排，句间一颗小蓝点；换人才换段，段间一行空 */
+.para{position:relative;width:fit-content}
+.para + .para{margin-top:10px}
+.para p{font-size:12.5px;line-height:1.6;letter-spacing:.03em;word-break:break-word;overflow-wrap:anywhere}
+.para.them p{color:var(--fg);font-weight:400}
+.para.me p{color:var(--fg2);font-weight:300}
+.para .s{cursor:pointer;border-bottom:.5px solid transparent;transition:color .2s,border-color .2s}
+.para .s.on{border-bottom-color:var(--lb)}
+.para.me .s.on{color:var(--fg);font-weight:400}
+.sep{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--lb);opacity:.7;vertical-align:middle;margin:0 .55em 0 .5em;position:relative;top:-1px}
+.rx{font-family:var(--fe);font-size:9px;line-height:0;color:var(--lb);margin-left:2px;vertical-align:.7em;font-weight:400}
+.cite{font-size:10.5px;line-height:1.5;color:var(--fg3);border-left:.5px solid var(--fg3);padding-left:7px;margin:1px 0 3px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:300}
+/* 按人分，对方每段空两格，她那边顶头（原来按长短：.para.long p 才缩） */
+.para.them p{text-indent:2em}
+.para p + p{margin-top:3px}
+#eyeB{position:absolute;z-index:6;width:64px;height:44px;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* 夹在信里的小照片和表情 */
+figure{position:relative;display:block;margin:5px 0 6px;transform:rotate(var(--tilt,0deg));transform-origin:20% 50%;width:fit-content;cursor:pointer}
+figure.pic{padding:4px 4px 10px;background:#fbfaf5;box-shadow:0 1px 2px rgba(43,44,50,.16),0 0 0 .5px rgba(43,44,50,.12)}
+body.dark figure.pic{background:#d9d6cd;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+figure.pic canvas,figure.pic img{display:block;width:92px;height:67px;object-fit:cover}
+figure.stk{margin:4px 0 7px}
+figure.stk canvas{display:block}
+figure.on{outline:.5px solid var(--lb);outline-offset:3px}
+figure[data-rx]:not([data-rx=""])::after{content:attr(data-rx);position:absolute;right:-12px;top:-4px;font-family:var(--fe);font-size:9px;color:var(--lb)}
+/* 点开一句后段尾露出的一小行 */
+.peek{display:flex;align-items:center;gap:9px;margin-top:3px;font-family:var(--fe),var(--fz);font-size:10px;letter-spacing:.08em;color:var(--fg2);line-height:1;animation:rise .25s ease both}
+.peek .hm{color:var(--lb)}
+.peek .dv{width:.5px;height:9px;background:var(--fg3)}
+.peek button{font-family:var(--fz);font-size:10px;color:var(--fg2);padding:3px 0;letter-spacing:.1em}
+.peek .mk{font-family:var(--fe);font-size:11px;color:var(--fg3);width:14px}
+.peek .mk.on{color:var(--lb)}
+/* 测绘线、楼层数字和刻度 */
+#survey{position:absolute;width:0;border-left:.5px solid var(--lb);opacity:.32;z-index:3;pointer-events:none}
+.fl{position:absolute;top:5.6px;width:30px;padding-right:7px;text-align:right;font-family:var(--fe);font-size:8px;line-height:1;letter-spacing:.04em;color:var(--fg3);font-variant-numeric:lining-nums tabular-nums;font-weight:400}
+.fl::after{content:"";position:absolute;right:0;top:4px;width:4px;border-top:.5px solid var(--fg3)}
+.para.ten .fl{color:var(--fg2);font-size:8.5px}
+.para.ten .fl::after{width:7px;border-top-color:var(--fg2)}
+.para.hl .fl,.para.hit .fl{color:var(--lb);transition:color .4s}
+.para .fl{transition:color .5s}
+.para.hit .fl::after{border-top-color:var(--lb);width:9px}
+.cite[data-to]{cursor:pointer}
+.para .s.flash{border-bottom-color:var(--lb);animation:flash 1.2s ease-out both}
+@keyframes flash{0%{border-bottom-color:transparent}15%{border-bottom-color:var(--lb)}70%{border-bottom-color:var(--lb)}100%{border-bottom-color:transparent}}
+figure.flash{outline:.5px solid var(--lb);outline-offset:3px}
+#scrub{position:absolute;width:28px;z-index:8;touch-action:none;cursor:ns-resize}
+#ftag{position:absolute;z-index:9;pointer-events:none;display:flex;flex-direction:row-reverse;justify-content:flex-start;width:36px;align-items:center;gap:3px;opacity:0;transition:opacity .4s;height:14px}
+#ftag::before{content:"";width:8px;border-top:.5px solid var(--lb)}
+#ftag b{font-family:var(--fe);font-weight:400;font-size:11px;letter-spacing:.06em;color:var(--lb);font-variant-numeric:lining-nums tabular-nums;background:var(--bg);padding:0 3px;line-height:14px}
+#ftag.on{opacity:1;transition:opacity .15s}
+.para.hl .fl::after{border-top-color:var(--lb);width:9px}
+.day{position:relative;height:27px;margin-top:14px;margin-bottom:3px}
+.day .dt,.gap{font-family:var(--fe);font-weight:300;font-size:9.5px;letter-spacing:.12em;color:var(--fg2);line-height:1}
+.day .dt{position:absolute;top:9px}
+.gap{margin-top:10px;width:fit-content;color:var(--fg3)}
+.gap + .para{margin-top:4px}
+.day:first-child{margin-top:0}
+.day + .para{margin-top:2px}
+.day canvas{position:absolute;left:0;top:0;display:block}
+.typing{display:flex;gap:4px;height:14px;align-items:center;margin-top:8px;transition:opacity .4s}
+.typing.off{opacity:0 !important}
+.typing i{width:3px;height:3px;border-radius:50%;background:var(--lb);animation:ink 1.3s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.16s}.typing i:nth-child(3){animation-delay:.32s}
+@keyframes ink{0%,60%,100%{opacity:.25;transform:none}30%{opacity:1;transform:translateY(-2px)}}
+.s.new,.para.new,.day.new,.gap.new,figure.new{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.s.new{animation-name:fade}   /* 11/15：去掉 inline-block，不然新到那条被 text-indent 推两次 */
+@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+#bar{position:absolute;left:0;right:0;z-index:6}
+#bar .rule{position:absolute;height:0;border-top:.5px solid var(--hair)}
+#say{position:absolute;border:0;outline:0;background:transparent;color:var(--fg2);font-family:var(--fz);font-weight:300;font-size:13.5px;letter-spacing:.03em;caret-color:var(--blue);padding:0;border-radius:0;-webkit-appearance:none;appearance:none}
+#say{font-size:12.5px}   /* 11/13 正文降一号，输入跟着降 */
+#say{display:block;resize:none;overflow-x:hidden;overflow-y:hidden;line-height:22px;white-space:pre-wrap;overflow-wrap:anywhere;scrollbar-width:none}
+#say.scroll{overflow-y:auto}
+#say::-webkit-scrollbar{display:none}
+#say::placeholder{color:var(--fg3);opacity:1;font-weight:300;letter-spacing:.2em}
+#send{position:absolute;width:40px;height:34px;z-index:7}
+#send svg{width:100%;height:100%;overflow:visible}
+.ico{position:absolute;top:-28px;width:26px;height:26px;z-index:7;color:var(--fg3)}
+.ico svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+#qchip{position:absolute;top:-52px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--fg3);border-left:.5px solid var(--lb);padding-left:7px;height:16px;font-weight:300}
+#qchip[hidden]{display:none}
+#qchip span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#qchip button{font-size:12px;color:var(--fg3);width:18px}
+#tray{position:absolute;bottom:40px;display:flex;gap:10px;padding:10px 0 8px;border-top:.5px solid var(--hair);background:var(--bg)}
+#tray[hidden]{display:none}
+#tray button{width:34px;height:34px}
+#tray canvas{display:block}
+/* v24 入场：泪坠沿测绘线落下，身后拉出线；线经过处刻度、数字亮起，邮戳盖下，正文淡入；坠子落在输入线上化成左端一个小节点 */
+#knot{position:absolute;width:22px;height:22px;border-radius:50%;z-index:10;padding:0;display:block}
+#knot svg{width:22px;height:22px;display:block;overflow:visible}
+/* v25 仪表：从线脚往上长出来的一小列读数，纸色底衬 */
+#gauge{position:absolute;z-index:9;padding:7px 12px 12px 0;background:color-mix(in srgb,var(--bg) 95%,transparent);box-shadow:8px 0 14px 4px color-mix(in srgb,var(--bg) 90%,transparent);transform-origin:0 100%}
+#gline{position:absolute;z-index:8;pointer-events:none;white-space:nowrap;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz);font-size:7.75px;line-height:12px;letter-spacing:.04em;color:var(--fg3)}
+#content.intro #gline,body.gated #gline,body.selecting #gline{opacity:0}
+#gauge[hidden]{display:none}
+#gauge.open{animation:grow .2s cubic-bezier(.2,.7,.3,1) both}
+#gauge.shut{animation:grow .2s cubic-bezier(.5,0,.8,.4) reverse both}
+@keyframes grow{from{transform:scaleY(0);opacity:0}to{transform:none;opacity:1}}
+#gauge .gr{position:relative;display:flex;align-items:baseline;gap:8px;padding-left:11px;height:17px;white-space:nowrap;font-size:10px;line-height:17px;letter-spacing:.08em;color:var(--fg2);font-weight:300}
+#gauge .gr::before{content:"";position:absolute;left:-1px;top:8.5px;width:5px;border-top:.5px solid var(--lb)}
+#gauge .gr b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace,var(--fz);font-weight:400;font-size:10px;letter-spacing:.02em;color:var(--fg)}
+#content.gauge-on #scrub{pointer-events:none}
+#tear{position:absolute;left:0;top:0;width:7px;height:12px;z-index:6;pointer-events:none;overflow:visible;transform-origin:50% 100%;display:none;will-change:transform}
+#content.intro #survey{transform:scaleY(0);transform-origin:50% 0}
+#content.intro #knot{opacity:0}
+#content.intro .para .fl,#content.intro .para > :not(.fl),#content.intro .day canvas,#content.intro .day .dt,#content.intro .gap,#content.intro .typing{opacity:0}
+#content.intro .para.i-on .fl{opacity:1;transition:opacity .2s ease-out,color .5s}
+#content.intro .para.i-on > :not(.fl),#content.intro .gap.i-on,#content.intro .typing.i-on{opacity:1;transition:opacity .3s ease-out .05s}
+#content.intro .day.i-on canvas{animation:stampIn .24s cubic-bezier(.3,.7,.3,1) both}
+#content.intro .day.i-on .dt{opacity:1;transition:opacity .28s ease-out .08s}
+.day canvas{transform-origin:12.5px 13.3px}
+@keyframes stampIn{0%{opacity:0;transform:scale(1.15) rotate(-7deg)}55%{opacity:1;transform:scale(.97) rotate(1.4deg)}100%{opacity:1;transform:none}}
+/* ===== v26 接功能补的样子：都小、都用纸白 / 墨黑 / 铅笔灰 / 一个蓝；原来的版式一条没改 ===== */
+:root{--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+/* 思考、工具动作：等宽小字一行，不占楼层号 */
+.aux{position:relative;width:fit-content;margin-top:7px;font-family:var(--mono),var(--fz);font-size:9px;line-height:1.55;letter-spacing:.02em;color:var(--fg3);word-break:break-word;overflow-wrap:anywhere;cursor:pointer}
+.aux + .para,.aux + .aux{margin-top:7px}
+.para + .aux{margin-top:9px}
+.aux.act .tx::before{content:"› ";color:var(--lb)}
+.aux.think b{font-weight:400;color:var(--fg3)}
+.aux.think b::after{content:" ▸";color:var(--lb)}
+.aux.think.open b::after{content:" ▾"}
+.aux.think .tx{display:none}
+.aux.think.open .tx{display:block;margin-top:2px;padding-left:9px;border-left:.5px solid var(--fg3);white-space:pre-wrap}
+.aux.draft.think .tx{display:block;max-height:3.2em;overflow:hidden;padding-left:9px;border-left:.5px solid var(--lb);-webkit-mask-image:linear-gradient(to bottom,#000 40%,transparent);mask-image:linear-gradient(to bottom,#000 40%,transparent)}
+.aux.on{color:var(--fg2)}
+#content.intro .aux{opacity:0}
+#content.intro .aux.i-on{opacity:1;transition:opacity .3s ease-out .05s}
+.spk{font-size:9.5px;letter-spacing:.14em;color:var(--fg3);margin-bottom:1px;font-weight:300}
+/* 发送中、没发出去、草稿 */
+.s.pending,figure.pending{opacity:.5}
+.s.failed{opacity:.75;border-bottom:.5px dashed var(--fg3);cursor:pointer}
+em.fail{font-style:normal;font-family:var(--mono),var(--fz);font-size:9px;letter-spacing:.02em;color:var(--lb);margin-left:.6em;cursor:pointer;white-space:nowrap}
+figure + em.fail{display:block;margin:-2px 0 4px}
+/* 真的图、贴纸、文件、转发来的聊天记录 */
+figure.stk img.stkimg{display:block;width:72px;height:72px;object-fit:contain}   /* 聊天里的表情放大 */
+figure.stk img:not(.stkimg){display:block;width:84px;height:84px;object-fit:contain}
+figure.pic img{background:var(--bg)}
+figure.miss{opacity:.45}
+figure.file{padding:4px 9px 4px 7px;border-left:.5px solid var(--lb);font-family:var(--mono),var(--fz);font-size:10px;color:var(--fg2);max-width:100%}
+figure.file span::before{content:"▤ ";color:var(--lb)}
+figure.fwd{padding:2px 0 2px 8px;border-left:.5px solid var(--fg3);font-size:11px;line-height:1.5;color:var(--fg2);font-weight:300;max-width:100%}
+figure.fwd b{display:block;font-weight:400;font-size:10.5px;letter-spacing:.1em;color:var(--fg2)}
+figure.fwd span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+figure.fwd span:nth-of-type(n+4){display:none}
+figure.fwd.open span{display:block;white-space:normal}
+img.stk-i{height:1.6em;width:auto;vertical-align:-.45em;margin:0 .1em}
+.para .s a{color:inherit;text-decoration:none;border-bottom:.5px solid var(--lb);word-break:break-all}
+/* 点一句露出的那排：放不下就折一行 */
+.peek{flex-wrap:wrap;row-gap:7px}
+.peek .more{display:inline-flex;gap:6px;align-items:center}
+.peek .more[hidden]{display:none}
+.peek .mk.emo{font-size:12px;width:auto;filter:grayscale(1);opacity:.7}
+.peek .mk.emo.on{filter:none;opacity:1}
+/* 多选 */
+.s.sel{background:color-mix(in srgb,var(--lb) 13%,transparent)}
+figure.sel{outline:.5px solid var(--lb);outline-offset:3px}
+body.selecting .para .s,body.selecting figure{cursor:copy}
+body.selecting #say,body.selecting #clip,body.selecting #emo,body.selecting #send,body.selecting #qchip,body.selecting #atts{visibility:hidden}
+#selbar{position:absolute;top:-26px;height:22px;display:flex;align-items:center;gap:12px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;font-size:10.5px;letter-spacing:.1em;color:var(--fg2);font-weight:300}
+#selbar[hidden]{display:none}
+#selbar .n{color:var(--lb);font-family:var(--fe),var(--fz)}
+#selbar button{font-size:10.5px;letter-spacing:.1em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid var(--fg3)}
+#selbar button:disabled{opacity:.4}
+/* 没钥匙：一行提示，输入线收起来 */
+#note{position:absolute;top:-24px;font-size:11px;letter-spacing:.12em;color:var(--fg3);font-weight:300}
+#note[hidden]{display:none}
+#note a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
+body.gated #say,body.gated #clip,body.gated #emo,body.gated #send,body.gated #knot{visibility:hidden}
+/* 待发的附件：输入线上方一小条 */
+#atts{position:absolute;display:flex;gap:10px;align-items:center;height:18px;overflow-x:auto;scrollbar-width:none}
+#atts[hidden]{display:none}
+#atts .it{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono),var(--fz);font-size:9.5px;color:var(--fg2);white-space:nowrap}
+#atts .it img{width:16px;height:16px;object-fit:cover;outline:.5px solid var(--fg3)}
+#atts .it.up{opacity:.5}
+#atts .it.bad em{color:var(--lb);text-decoration:line-through}
+#atts .it button{font-size:12px;color:var(--fg3);width:14px}
+/* 贴纸盘：接后台时是 Nyx 的贴纸，下面一行 emoji */
+#tray.live{flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;scrollbar-width:none}
+#tray.live .stks{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}   /* 盘里的贴纸放大，一行五张 */
+#tray.live .stks button{width:100%;height:auto;aspect-ratio:1}
+#tray.live .stks img{display:block;width:100%;height:100%;object-fit:contain}
+#tray.live .emos{display:flex;flex-wrap:wrap;gap:2px;padding-top:6px;border-top:.5px solid var(--hair)}
+#tray.live .emos button{width:26px;height:26px;font-size:15px;line-height:26px}
+/* 顶栏三个细线入口 */
+#tools{position:absolute;z-index:6;display:flex;gap:0}
+#tools button{width:44px;height:44px;color:var(--fg3);padding:10px;-webkit-tap-highlight-color:transparent}
+#tools svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:.75;stroke-linecap:round;stroke-linejoin:round}
+/* 小提示 */
+#toast{position:absolute;z-index:11;text-align:center;font-size:10.5px;letter-spacing:.14em;color:var(--fg2);font-weight:300;pointer-events:none;opacity:0;transition:opacity .3s}
+#toast.on{opacity:1}
+#zoom{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--bg) 96%,transparent);display:flex;align-items:center;justify-content:center;padding:24px}
+#zoom img{max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 1px 3px rgba(43,44,50,.2)}
+/* 仪表：读数下面的细线文字钮、换模型 / 窗口小清单、一行说明 */
+#gauge .gr small{font-size:9px;color:var(--fg3);letter-spacing:.04em}
+#gauge .gact{display:flex;flex-wrap:wrap;gap:4px 11px;padding:7px 0 0 11px;margin-top:4px;border-top:.5px solid var(--hair)}
+#gauge .gact button,#gauge .gsub button{font-size:10px;letter-spacing:.1em;color:var(--fg2);padding:2px 0;border-bottom:.5px solid var(--fg3);font-weight:300;white-space:nowrap}
+#gauge .gact button.on,#gauge .gsub button.on{color:var(--lb);border-bottom-color:var(--lb)}
+#gauge .gsub{display:flex;flex-wrap:wrap;gap:5px 11px;padding:7px 0 0 11px;max-height:180px;overflow-y:auto}
+#gauge .gsub p{font-size:10px;color:var(--fg3);letter-spacing:.08em}
+#gauge .gsub button.win{display:block;width:100%;text-align:left;border-bottom:0;border-left:.5px solid var(--fg3);padding:1px 0 1px 7px;white-space:normal}
+#gauge .gsub button.win span{display:block;font-family:var(--mono),var(--fz);font-size:9.5px;letter-spacing:.02em}
+#gauge .gsub button.win em{display:block;font-style:normal;font-size:10px;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gauge .gsub button.win.on{border-left-color:var(--lb)}
+#gauge .gnote{padding:6px 0 0 11px;font-size:10px;line-height:1.5;letter-spacing:.06em;color:var(--fg3);white-space:normal}
+#gauge{white-space:normal}
+/* ===== v28：来电条、就地换人、表情盘页签、打码、一起听、更多设置 ===== */
+.aux.call .tx::before{content:"☏ ";color:var(--lb)}
+#tools button.on{color:var(--lb)}
+#ring{position:absolute;z-index:12;display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--bg);border:.5px solid var(--fg3);font-size:11px;letter-spacing:.08em;color:var(--fg2);font-weight:300;animation:rise .3s ease both}
+#ring[hidden]{display:none}
+#ring b{font-weight:400;color:var(--lb);letter-spacing:.2em;flex:none}
+#ring em{font-style:normal;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ring button{flex:none;font-size:11px;letter-spacing:.14em;color:var(--fg);padding:2px 0;border-bottom:.5px solid var(--fg3)}
+#ring button[data-a="yes"]{color:var(--lb);border-bottom-color:var(--lb)}
+#roster{position:absolute;z-index:13;padding:5px 0;background:var(--bg);border:.5px solid var(--hair);box-shadow:0 6px 18px -10px rgba(22,23,28,.35)}
+#roster[hidden]{display:none}
+#roster.on{animation:grow .2s cubic-bezier(.2,.7,.3,1) both;transform-origin:0 0}
+#roster button,#roster a.lsn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 12px;text-align:left;text-decoration:none;color:var(--fg);position:relative}
+#roster .av{flex:none;width:18px;height:18px;border-radius:50%;overflow:hidden;border:.5px solid var(--fg3);display:grid;place-items:center;font-size:9.5px;color:var(--fg2)}
+#roster .av img{width:100%;height:100%;object-fit:cover;display:block}
+#roster b{font-weight:400;font-size:12px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#roster .dot{flex:none;width:4px;height:4px;border-radius:50%;border:.5px solid var(--fg3)}
+#roster .dot.up{background:var(--lb);border-color:var(--lb)}
+#roster small{margin-left:auto;font-size:9.5px;letter-spacing:.06em;color:var(--fg3);white-space:nowrap}
+#roster button.cur b{color:var(--lb)}
+#roster button.cur::before{content:"";position:absolute;left:0;top:50%;width:6px;border-top:.5px solid var(--lb)}
+#roster button.off .av,#roster button.off b{opacity:.55}
+#roster a.lsn{margin-top:4px;padding-top:7px;border-top:.5px solid var(--hair);color:var(--fg2);font-size:11px;letter-spacing:.14em}
+#roster a.lsn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+#roster a.lsn small{color:var(--lb)}
+#who .st .lsn{display:inline-flex;width:11px;height:11px;color:var(--lb)}
+#who .st .lsn svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+#tray.live .tabs{display:flex;gap:16px;flex:none}
+#tray.live .tabs button{width:auto;height:auto;font-size:10.5px;letter-spacing:.16em;color:var(--fg3);padding:1px 0 3px;border-bottom:.5px solid transparent;font-weight:300}
+#tray.live .tabs button.on{color:var(--fg);border-bottom-color:var(--lb)}
+#tray.live .pane{min-height:84px}
+#tray.live .pane .emos{border-top:0;padding-top:0}
+#tray.live .stks .add{border:.5px dashed var(--fg3);color:var(--fg3);font-size:16px;font-weight:300}
+#tray.live .kao{display:flex;flex-wrap:wrap;gap:6px}
+#tray.live .kao button{width:auto;height:auto;padding:3px 8px;border:.5px solid var(--hair);font-size:12px;color:var(--fg);white-space:nowrap}
+#tray.live .kao .add{color:var(--fg3);border-style:dashed;font-size:11px;letter-spacing:.1em}
+#tray.live .tip{margin-top:7px;font-size:9.5px;letter-spacing:.1em;color:var(--fg3);font-weight:300}
+/* 11/13 ?fine=1：页眉和线脚的细活。画布在内容层最底下，不挡点；页眉图标线变细、尖角平头，各有一小块实心 */
+#fine{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
+body.fine #tools svg{stroke-width:.49;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:8}
+body.fine #tools svg .fb{fill:currentColor;stroke:none}
+/* 11/13 常用语：一行一句、细线分开、单行截断；顶上一行「＋」存输入框里的字 */
+#tray.live .phr{display:flex;flex-direction:column}
+#tray.live .phr button{width:100%;height:auto;padding:6px 2px;border-bottom:.5px solid color-mix(in srgb,var(--hair) 32%,transparent);text-align:left;font-size:10.5px;line-height:1.4;letter-spacing:.04em;color:var(--fg);font-weight:300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#tray.live .phr .add{color:var(--fg3);font-size:9.5px;letter-spacing:.12em}
+#tray.live .phr .add:active,#tray.live .phr button:active{color:var(--lb)}
+#tray.live .stks.demo button{width:38px;height:38px}
+#gauge{width:max-content;box-sizing:border-box}
+#gauge.wide{background:var(--bg)}
+body.gauge-on #say,body.gauge-on #clip,body.gauge-on #emo,body.gauge-on #send{opacity:0;pointer-events:none;transition:opacity .15s}   /* 仪表开着时输入那一排先让开，收起就回来 */
+/* 11/12 仪表「设置」：一行一样，左边小标签，右边一排细线文字钮（当前档蓝色下划线），数值是「− 数 ＋」 */
+#gauge .gsub.set{display:block;max-height:min(340px,46vh);padding-right:2px}
+#gauge .set .sgrp+.sgrp{margin-top:6px;padding-top:6px;border-top:.5px solid var(--hair)}
+#gauge .set .srow{display:flex;align-items:baseline;gap:10px;min-height:20px}
+#gauge .set .sk{flex:0 0 4.6em;font-size:10px;letter-spacing:.08em;color:var(--fg3);font-weight:300;white-space:nowrap}
+#gauge .set .sopt,#gauge .set .spick{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px}
+#gauge .set .sopt{flex:1 1 0;min-width:0}
+#gauge .set .sopt em{font-style:normal;font-size:9px;color:var(--fg3);letter-spacing:.04em}
+#gauge .set button.mono,#gauge .set .sv{font-family:var(--mono),var(--fz);letter-spacing:.02em}
+#gauge .set .sstep{display:inline-flex;align-items:baseline;gap:2px}
+#gauge .set .sstep button{min-width:20px;padding:2px 4px;border-bottom:0;text-align:center;font-size:11px;color:var(--fg2)}
+#gauge .set .sstep button:disabled{color:var(--hair);cursor:default}
+#gauge .set .sv{min-width:44px;text-align:center;font-size:10px;font-weight:400;color:var(--fg);border-bottom:.5px solid var(--lb);padding:2px 0}
+#gauge .set .spick button{font-family:var(--mono),var(--fz);font-size:9.5px;letter-spacing:.02em;color:var(--fg3)}
+#gauge .set .sh{margin:1px 0 4px 56px;font-size:9px;line-height:1.45;letter-spacing:.04em;color:var(--fg3);white-space:normal;max-width:24em}
+/* 打码（sticker-mask）和通话（call.css）换成这页的三色 */
+#content{--sm-accent:var(--blue);--sm-on-accent:#f1eee6;--sm-bg:var(--bg);--sm-bg-input:color-mix(in srgb,var(--fg) 7%,var(--bg));--sm-border:var(--hair);--sm-text:var(--fg);--sm-text-muted:var(--fg3);--sm-radius:0px;--sm-font:var(--fz)}
+#content .sm-side{border-radius:0;border-width:.5px;box-shadow:none}
+#content .sm-pal-item{border-width:.5px}
+#content .sm-btn{border-radius:0;border-width:.5px;font-size:11px;letter-spacing:.14em}
+#content .sm-btn.sm-primary{background:transparent;color:var(--blue);border-color:var(--blue)}
+#content .sm-editing .sm-sticker::after{border-radius:0;border-width:.5px}
+body .vc .vc-av,body .vc .vc-inav{background:var(--bg) var(--vc-av,none) center/cover no-repeat}
+body .vc .vc-hang{background:var(--fg);color:var(--bg);box-shadow:0 8px 20px -8px rgba(22,23,28,.45)}
+body .vc .vc-cb,body .vc .vc-min,body .vc .vc-bar{border-width:.5px}
+/* 11/12 邮票（第四版）：从线脚往上长，跟仪表一个位置。线都在 0.2–0.5；重量只在几块负片窗上 */
+#tix{position:absolute;z-index:9;transform-origin:0 100%;--tk-face:#f8f6f0;--tk-sh:rgba(43,44,50,.16);filter:drop-shadow(0 .5px .6px var(--tk-sh)) drop-shadow(0 6px 10px rgba(43,44,50,.08))}
+body.dark #tix{--tk-face:#1f2026;--tk-sh:rgba(0,0,0,.6);filter:drop-shadow(0 .5px .8px var(--tk-sh)) drop-shadow(0 8px 16px rgba(0,0,0,.45))}
+#tix[hidden]{display:none}
+#tix svg,#tix canvas{position:absolute;left:0;top:0;display:block;overflow:visible}
+#tix svg{shape-rendering:geometricPrecision}
+#tix .face{fill:var(--tk-face)}
+#tix .fr{fill:none;stroke:var(--fg3);stroke-width:.45}
+#tix .fr2{fill:none;stroke:var(--fg3);stroke-width:.28}
+#tix .tear circle{fill:none;stroke:var(--fg3);stroke-width:.26;opacity:.8}
+#tix canvas.sky{opacity:.92}
+#tix .zh{font-family:var(--fz);font-size:8px;font-weight:600;letter-spacing:.2em;fill:var(--fg)}
+#tix .en{font-family:var(--fe);font-size:9px;font-weight:500;letter-spacing:.12em;fill:var(--fg3);opacity:.55}
+#tix .val{font-family:var(--fe);font-size:8px;font-style:italic;font-weight:500;letter-spacing:.02em;fill:var(--fg2)}
+#tix .val .u{font-size:5.5px;letter-spacing:.06em}
+#tix .ico .b{fill:var(--lb)}
+#tix .ico .w{fill:none;stroke:var(--tk-face);stroke-width:.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#tix .ico .wf{fill:var(--tk-face)}
+#tix .ico .l{fill:none;stroke:var(--lb);stroke-width:.33;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10}
+#tix .ico .h{fill:none;stroke:var(--lb);stroke-width:.25;stroke-linecap:butt;stroke-opacity:1}
+#tix .ico circle.l{fill:none}
+#tix .ico .pt circle{fill:var(--lb)}
+/* 第八版：蓝箔压进纸里——外沿左上一道纸色高光、右下一道淡墨影（都是硬边、错开不到半像素），里沿一圈深一点的蓝，箔面几道斜的亮带暗带 */
+#tix .ico .sh{fill:rgba(22,23,28,.11)}
+#tix .ico .hi{fill:#fffdf7}
+#tix .ico .fl{fill:color-mix(in srgb,var(--lb) 79%,#f1eee6)}
+#tix .ico .fd{fill:color-mix(in srgb,var(--lb) 80%,#16171c)}
+#tix .ico .edge{fill:none;stroke:color-mix(in srgb,var(--lb) 66%,#16171c);stroke-width:.6;stroke-linejoin:miter}
+body.dark #tix .ico .sh{fill:rgba(0,0,0,.45)}
+body.dark #tix .ico .hi{fill:rgba(255,255,255,.1)}
+body.dark #tix .ico .fl{fill:color-mix(in srgb,var(--lb) 88%,#ffffff)}
+#tix .ico .ptw circle{fill:var(--tk-face)}
+/* 11/15 邮票张整张抬到输入那一排上面，输入不再让开 */
+#tix button{position:absolute;top:0;height:100%;padding:0;background:transparent;transition:background .15s}
+#tix button:active{background:color-mix(in srgb,var(--lb) 5%,transparent)}
+#tix button:focus-visible{outline:.5px solid var(--lb);outline-offset:-4px}
+#tix.open{animation:grow .2s cubic-bezier(.2,.7,.3,1) both}
+#tix.shut{animation:grow .16s cubic-bezier(.5,0,.8,.4) reverse both}
+@media (prefers-reduced-motion:reduce){#tix.open,#tix.shut{animation:none}}
+.vc{--accent:var(--blue);--soft:var(--fg2);--faint:var(--fg3);--paper:var(--bg);--ink:var(--fg);--me:var(--bg);--me-ink:var(--fg);--serif:var(--fz);--pad:22px;--hair:rgba(43,44,50,.3)}
+/* 11/12 群聊：@ 的成员读数（同状态行展开那一列的测绘线样式）、正文里的 @ 蓝字、页眉下的置顶条（半实半空的图钉刻线） */
+#atpop{position:absolute;z-index:10;min-width:8em;padding:4px 14px 4px 0;border-left:.5px solid color-mix(in srgb,var(--lb) 45%,transparent);background:var(--bg);box-shadow:10px 0 16px 6px color-mix(in srgb,var(--bg) 92%,transparent);transform-origin:0 100%;box-sizing:border-box;animation:grow .18s cubic-bezier(.2,.7,.3,1) both}
+#atpop[hidden]{display:none}
+#atpop button{position:relative;display:flex;align-items:baseline;gap:8px;width:100%;height:19px;padding:0 0 0 10px;text-align:left;font-size:10px;line-height:19px;letter-spacing:.1em;color:var(--fg);font-weight:300;white-space:nowrap}
+#atpop button+button{border-top:.5px solid color-mix(in srgb,var(--hair) 22%,transparent)}
+#atpop button::before{content:"";position:absolute;left:0;top:9.5px;width:5px;border-top:.5px solid var(--lb)}
+#atpop small{margin-left:auto;padding-left:12px;font-size:8px;letter-spacing:.06em;color:var(--fg3)}
+#atpop button:active span,#atpop button:focus-visible span{color:var(--lb)}
+.para .s .at{color:var(--lb);font-size:.84em;letter-spacing:.04em;font-weight:400}
+#gpin{position:absolute;z-index:5;display:flex;align-items:center;height:12px;padding:0;text-align:left;cursor:pointer;-webkit-user-select:none;user-select:none;animation:rise .2s ease both}
+#gpin[hidden]{display:none}
+#gpin svg{position:absolute;left:0;top:0;width:10px;height:12px;overflow:visible;shape-rendering:geometricPrecision}
+#gpin .pf{fill:var(--lb)}
+#gpin .po{fill:none;stroke:var(--fg2);stroke-width:.55;stroke-linejoin:miter;stroke-miterlimit:8}
+#gpin .pl{fill:none;stroke:var(--fg2);stroke-width:.55;stroke-linecap:butt}
+#gpin .t{flex:1;min-width:0;font-size:9px;line-height:12px;letter-spacing:.06em;color:var(--fg2);font-weight:300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gpin:active .t{color:var(--lb)}
+@media (prefers-reduced-motion:reduce){#atpop,#gpin{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="deco"></canvas>
+  <div id="content">
+    <svg id="eye" viewBox="-32 -22 64 44" aria-hidden="true"></svg>
+    <div id="who"><b>阿昼</b><span class="st" id="st" role="status" aria-live="polite"></span></div>
+    <svg id="stamp" viewBox="-12 -15 24 30" aria-hidden="true"></svg>
+    <div id="survey" aria-hidden="true"></div>
+    <div id="scrub" aria-hidden="true"></div>
+    <div id="ftag" aria-hidden="true"><b></b></div>
+    <div id="list" role="log" aria-live="polite" aria-label="对话"><div id="rows"></div></div>
+    <div id="bar">
+      <div class="rule"></div>
+      <label class="sr" for="say">写一句</label>
+      <textarea id="say" rows="1" autocomplete="off" enterkeyhint="send" placeholder="写一句"></textarea>
+      <div id="qchip" hidden><span></span><button aria-label="不引用了">×</button></div>
+      <div id="tray" hidden aria-label="表情"></div>
+      <button id="clip" class="ico" aria-label="附件"></button>
+      <button id="emo" class="ico" aria-label="表情"></button>
+      <input id="file" type="file" accept="image/*" hidden>
+      <button id="send" aria-label="发送"></button>
+    </div>
+    <div id="gauge" hidden role="group" aria-label="仪表"></div>
+  </div>
+  <button id="back" aria-label="回主页"></button>
+  <button id="menu" aria-label="换一面"></button>
+  <canvas id="fx"></canvas>
+</div>
+<script src="flap.js"></script>
+<script src="pages.js"></script>
+<script src="chat.js?v=1116d"></script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

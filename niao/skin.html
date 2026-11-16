@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f1eee6">
+<title>换皮肤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* 换皮肤：祂和 Nyx 原版主页的两种之间切换。选项一行一个，点了写进 nyx_home 再回对应的主页 */
+:root{--paper:#f1eee6;--ink:#16171c;--grey:#8a8b91;--blue:#1c31b6;--fe:"Cormorant Garamond",Georgia,serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--paper);color:var(--ink);font-family:"Noto Serif SC",serif;-webkit-text-size-adjust:100%}
+body{padding:calc(54px + env(safe-area-inset-top)) 0 40px}
+a{color:inherit;text-decoration:none}
+#back{position:absolute;left:24px;top:calc(22px + env(safe-area-inset-top));width:22px;height:22px}
+#back svg{width:22px;height:22px;overflow:visible}
+#ttl{position:relative;margin-left:58px;line-height:1}
+#ttl b{position:relative;font-weight:600;font-size:11px;letter-spacing:.1em}
+#ttl .ghost{position:absolute;left:-6px;top:-34px;font-family:var(--fe);font-style:italic;font-weight:300;font-size:78px;letter-spacing:.02em;opacity:.045;white-space:nowrap;pointer-events:none}
+#rule{position:absolute;left:34px;top:calc(120px + env(safe-area-inset-top));bottom:60px;border-left:.5px solid rgba(28,49,182,.35)}
+#list{margin:86px 0 0 58px;padding-right:30px}
+.o{display:flex;align-items:baseline;gap:12px;width:100%;padding:16px 0 15px;border:0;border-bottom:.5px solid rgba(22,23,28,.12);background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer;position:relative}
+.o::before{content:"";position:absolute;left:-27px;top:22px;width:5px;height:5px;border-radius:50%;border:.5px solid var(--blue);background:var(--paper)}
+.o.on::before{background:var(--blue)}
+.o b{font-weight:400;font-size:13px;letter-spacing:.08em}
+.o i{font-family:var(--fe);font-style:italic;font-size:13px;color:var(--grey);letter-spacing:.04em}
+.o span{margin-left:auto;font-size:9px;letter-spacing:.14em;color:var(--grey)}
+.o:active{opacity:.55}
+#note{margin:26px 0 0 58px;font-size:9px;letter-spacing:.14em;color:var(--grey)}
+</style>
+</head>
+<body>
+<a id="back" href="index.html" aria-label="回祂"><svg viewBox="0 0 22 22" fill="none" stroke="#1c31b6" stroke-width=".6"><circle cx="11" cy="11" r="7.5"/><path d="M11 3.5a7.5 7.5 0 0 0 0 15z" fill="#1c31b6" stroke="none"/></svg></a>
+<div id="ttl"><span class="ghost">Skins</span><b>换皮肤</b></div>
+<div id="rule"></div>
+<div id="list">
+  <button class="o" data-s="niao"><b>祂</b><i>this one</i><span>留在这儿</span></button>
+  <button class="o" data-s="ink"><b>墨河</b><i>ink</i><span>日月</span></button>
+  <button class="o" data-s="tree"><b>树</b><i>tree</i><span>日月</span></button>
+</div>
+<p id="note">换好回到 Nyx 的家</p>
+<script>
+(function () {
+  /* 记在 nyx_home：niao 是祂，ink / tree 是 Nyx 原版主页的两种（../index.html 读同一个键） */
+  var KEY = 'nyx_home', cur = 'niao';
+  try { cur = localStorage.getItem(KEY) || 'niao'; } catch (e) {}
+  document.querySelectorAll('.o').forEach(function (b) {
+    if (b.dataset.s === cur) b.classList.add('on');
+    b.onclick = function () {
+      var s = b.dataset.s;
+      try { localStorage.setItem(KEY, s); } catch (e) {}
+      location.href = s === 'niao' ? 'index.html' : '../index.html';
+    };
+  });
+  window.__ready = true;
+})();
+</script>
+<script src="tap.js?v=1115t"></script>
+</body>
+</html>

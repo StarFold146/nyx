@@ -6,7 +6,8 @@ window.NYX = {
   aiName: "Companion",
   meName: "Me",
   title: "Nyx",
-  // home: "ink" (the river poster) or "tree" (NyxTree). Each device can switch in the drawer; this is the default.
+  // home: "ink" (the river poster), "tree" (NyxTree) or "niao" (祂, the pages in niao/). Each device can switch in the drawer
+  // (祂 switches back with the stamp in its bottom-right corner); this is the default.
   home: "ink",
   // treePhoto: a picture laid under the tree on the night side, pressed dark, e.g. "photos/forest.jpg". Leave null for none.
   treePhoto: null,
