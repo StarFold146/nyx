@@ -11,6 +11,8 @@
 #           --consent person|chat   who can say yes to sending things out / spending / deleting:
 #                       person (default) = only on the server itself; chat = a yes typed in the Nyx chat counts too.
 #                       Change it later with: bash ~/nyx/consent.sh chat|person
+#           --stt       also set up SenseVoice speech-to-text for calls and voice messages (optional; about 1 GB
+#                       to download, 230 MB kept, CPU only). Can be added later: bash ~/nyx/relay/stt-sense/setup.sh
 #           Run again on a server that already has Nyx and it asks whether to add another instead of reinstalling.
 #
 # What it does: installs the relay (Python), the web pages, Caddy with automatic HTTPS on
@@ -19,7 +21,7 @@
 # Run it as your normal user (not root). It asks for sudo when it needs it.
 set -euo pipefail
 
-AI=""; AI_NAME=""; ME_NAME=""; DIR=""; SLUG=""; CONSENT=""; REPO="https://github.com/StarFold146/nyx.git"
+AI=""; AI_NAME=""; ME_NAME=""; DIR=""; SLUG=""; CONSENT=""; STT=""; REPO="https://github.com/StarFold146/nyx.git"
 while [ $# -gt 0 ]; do
   case "$1" in
     --ai) AI=$2; shift 2 ;;
@@ -28,6 +30,7 @@ while [ $# -gt 0 ]; do
     --dir) DIR=$2; shift 2 ;;
     --as) SLUG=$2; shift 2 ;;
     --consent) CONSENT=$2; shift 2 ;;
+    --stt) STT=1; shift ;;
     *) echo "unknown option: $1"; exit 2 ;;
   esac
 done
@@ -281,6 +284,10 @@ sudo systemctl enable -q --now nyx-relay$SFX
 [ -n "$SLUG" ] && sudo systemctl restart nyx-relay   # the first relay picks up its new group member
 sudo systemctl enable -q caddy && sudo systemctl restart caddy
 sudo systemctl enable -q nyx-companion$SFX
+if [ -n "$STT" ]; then
+  say "Speech-to-text (SenseVoice, optional)"
+  bash "$DIR/relay/stt-sense/setup.sh" || echo "SenseVoice didn't install; the rest of Nyx is fine. Try again later: bash $DIR/relay/stt-sense/setup.sh"
+fi
 
 if [ -n "$SLUG" ]; then cat <<EOF
 

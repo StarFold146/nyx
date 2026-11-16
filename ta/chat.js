@@ -14,7 +14,7 @@
 const { C, TAU, PI, clamp, smoother, rng, dot, birdD, PERCH, setupGrain, fitCanvas, spots, litD, backMoon, homeInfo, revealIn, leaveHome, Q, REDUCED } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), list = $('list'), rows = $('rows'), eye = $('eye'), who = $('who'), stampEl = $('stamp'), bar = $('bar'), say = $('say'), send = $('send'), survey = $('survey');
-let dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+let dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const DEMO_GROUP = !LIVE && (Q.get('group') === '1' || /\/g$/.test(Q.get('relay') || ''));   // 11/12 ?demo=1&group=1：示例群（两条带 @、一条置顶），不发请求
@@ -742,7 +742,7 @@ function buildTools() {
   const tl = document.createElement('nav'); tl.id = 'tools'; tl.setAttribute('aria-label', '入口');
   tl.innerHTML = [['people', '联系人'], ['call', '通话']].map(   // 工程板（邮票里有）和打码收掉入口，打码代码还在
     ([k, n]) => `<button data-k="${k}" aria-label="${n}" title="${n}"><svg viewBox="0 0 24 24" aria-hidden="true">${(FINE && TOOLS_FINE[k]) || TOOLS_SVG[k]}</svg></button>`).join('');
-  tl.addEventListener('click', ev => {   // v28：联系人就地展开、通话本页打、打码本页开；工程板仍跳 Nyx（本站那版，niao 主页也是这么接的）
+  tl.addEventListener('click', ev => {   // v28：联系人就地展开、通话本页打、打码本页开；工程板仍跳 Nyx（本站那版，祂主页也是这么接的）
     const b = ev.target.closest('button'); if (!b) return; ev.stopPropagation();
     if (!LIVE) { toast('演示里不跳'); return; }
     const k = b.dataset.k;
@@ -771,7 +771,7 @@ function tixFrame(x, y, w, h, r) {   // 四角内凹的框
   return `M${f2(x + r)} ${f2(y)}H${f2(x + w - r)}A${r} ${r} 0 0 0 ${f2(x + w)} ${f2(y + r)}V${f2(y + h - r)}A${r} ${r} 0 0 0 ${f2(x + w - r)} ${f2(y + h)}H${f2(x + r)}A${r} ${r} 0 0 0 ${f2(x)} ${f2(y + h - r)}V${f2(y + r)}A${r} ${r} 0 0 0 ${f2(x + r)} ${f2(y)}Z`;
 }
 
-/* ---------- 铅笔：照搬主页 lab/niao/main.js 的 hand() / hatch()（画签绘建筑那套），参数一个没改，只把主页的单位 U 换成邮票上的 PU。
+/* ---------- 铅笔：照搬主页 main.js 的 hand() / hatch()（画签绘建筑那套），参数一个没改，只把主页的单位 U 换成邮票上的 PU。
    每条线两三遍略抖的笔触叠成，端头出头，粗细浓淡跟着压力走；后几遍只描一截。切成小段 {p,w,a} 存起来再一起画。 ---------- */
 const PU = 0.5;
 let SKR = rng(1), SKU = [];
@@ -1105,7 +1105,7 @@ function fineLashes(h, W2) {   // h：此刻上睑的控制点高度；沿二次
 }
 /* ---------- v27 输入：多行信纸。随字长高，最多五行，再多在里面滚；线、月相节点、小图标、燕子都留在最底下一行，输入区往上长。
    回车：照 Nyx 判断，触屏（pointer: coarse）回车是换行、点燕子才发；有实体键盘的回车发、Shift+回车换行；输入法拼字时回车不发。
-   草稿存 sessionStorage「niao-say:<跟谁聊>」，切后台、刷新都还在，发出去就清。 ---------- */
+   草稿存 sessionStorage「ta-say:<跟谁聊>」，切后台、刷新都还在，发出去就清。 ---------- */
 const LINE = 22, MAXL = 5;   // 11/13 正文 13.5 → 12.5px，输入行高 24 → 22
 let SAYX = 0, composing = false;
 const touchInput = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
@@ -1121,7 +1121,7 @@ function grow(noScroll) {
     placeExtras(); if (stick && !noScroll) toBottom();
   }
 }
-const draftKey = () => 'niao-say:' + (LIVE ? RELAY : 'demo');
+const draftKey = () => 'ta-say:' + (LIVE ? RELAY : 'demo');
 let saveT = 0;
 function saveDraft() { clearTimeout(saveT); try { if (say.value) sessionStorage.setItem(draftKey(), say.value); else sessionStorage.removeItem(draftKey()); } catch (e) {} }
 function loadDraft() { try { const v = sessionStorage.getItem(draftKey()); if (v && !say.value) { say.value = v; grow(); drawSend(); } } catch (e) {} }
@@ -1786,7 +1786,7 @@ function pollBusy() {
 }
 function loadMeter() {
   if (!KEY || GROUP) return Promise.resolve();
-  const k = 'niao_meter' + SUFX;
+  const k = 'ta_meter' + SUFX;
   return api('/app/meter').then(d => { meterData = d; meterTried = true; try { localStorage.setItem(k, JSON.stringify(d)); } catch (e) {} paintKnot(); if (gaugeOn) buildGauge(); })
     .catch(() => { meterTried = true; paintKnot(); if (gaugeOn) buildGauge(); });   // 读不到就留着上回的数，别整个空掉
 }
@@ -1794,7 +1794,7 @@ function loadMeter() {
 let meterPoll = 0;
 function meterEarly() {
   if (!KEY || GROUP) return;
-  if (!meterData) { try { const c = JSON.parse(ls('niao_meter' + SUFX) || 'null'); if (c) { meterData = c; meterTried = true; paintKnot(); } } catch (e) {} }
+  if (!meterData) { try { const c = JSON.parse(ls('ta_meter' + SUFX) || 'null'); if (c) { meterData = c; meterTried = true; paintKnot(); } } catch (e) {} }
   loadMeter();
   if (!meterPoll) meterPoll = setInterval(() => { if (!document.hidden) loadMeter(); }, 60000);
 }
@@ -1822,7 +1822,7 @@ function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null
 function resolve() {   // 跟谁聊：?relay= 指定，不然跟 Nyx 现在选的那只（nyx_relay），再不然第一只；钥匙、名字、头像后缀跟着走（同 Nyx 的 enter()）
   const N = window.NYX || {};
   HOME = N.relay || '/relay'; ME = N.meName || '我';
-  const up = p => typeof p === 'string' && p && !/^(\/|[a-z]+:)/i.test(p) ? '../' + p : p;   // config.js 的相对路径是从站点根算的，这页在 niao/ 里
+  const up = p => typeof p === 'string' && p && !/^(\/|[a-z]+:)/i.test(p) ? '../' + p : p;   // config.js 的相对路径是从站点根算的，这页在 ta/ 里
   STICKERS = up(N.stickers) || STICKERS; DRAWS = up(N.drawings) || DRAWS;
   const want = Q.get('relay'), ok = r => typeof r === 'string' && /^\/relay(-[a-z0-9]+)?(\/g)?$/.test(r);
   const picked = ls('nyx_relay');
@@ -1844,7 +1844,7 @@ function startLive() {
     if (!KEY) { showGate('none'); return; }
     meterEarly();
     /* 打开白纸三秒。先把上回存在手机里的那批摆出来，后台的到了再整批换上 */
-    const CK = 'niao_hist' + SUFX; let cached = null;
+    const CK = 'ta_hist' + SUFX; let cached = null;
     try { const c = JSON.parse(ls(CK) || 'null'); if (Array.isArray(c) && c.length) cached = c; } catch (e) {}
     if (cached) {
       ORDER = []; MSGS.clear();
@@ -1987,7 +1987,7 @@ function sendMine(x) {   // 存的表情当图发：先传上去（名字 sticke
   EPHS.push(e); redrawEph(e.key); toBottom(); flyBird(); firePend(e);
 }
 let trayTab = 'stk';
-try { trayTab = sessionStorage.getItem('niao-tray') || 'stk'; } catch (e) {}
+try { trayTab = sessionStorage.getItem('ta-tray') || 'stk'; } catch (e) {}
 function paintTray() {
   const tr = $('tray');
   if (!LIVE && trayTab !== 'phr') trayTab = 'kao';
@@ -2010,7 +2010,7 @@ function trayClick(ev) {
   const b = ev.target.closest('button'); if (!b) return; ev.stopPropagation();
   if (trayPressed) { trayPressed = false; return; }
   const tr = $('tray');
-  if (b.dataset.tab) { trayTab = b.dataset.tab; try { sessionStorage.setItem('niao-tray', trayTab); } catch (e) {} paintTray(); return; }
+  if (b.dataset.tab) { trayTab = b.dataset.tab; try { sessionStorage.setItem('ta-tray', trayTab); } catch (e) {} paintTray(); return; }
   if (b.dataset.e) { insertAt(b.dataset.e); return; }
   if (b.dataset.s) { if (LIVE) sendLive('[sticker:' + b.dataset.s + ']'); else post('', { stk: b.dataset.s }); tr.hidden = true; return; }
   if (b.dataset.phr != null) { insertAt(loadPhr()[+b.dataset.phr] || ''); return; }   // 同颜文字：落在光标处，盘不收
@@ -2116,7 +2116,7 @@ function paintListen() { let n = stEl.querySelector('.lsn'); if (!listening) { i
 function goListen(a, ev) {   // 走纸面转场离开：蓝满月从点的地方涨满，再去 listen.html（那边从同一个圆心揭开）
   ev.preventDefault(); if (window.__leaving) return; window.__leaving = true;
   const rc = a.getBoundingClientRect(), x = rc.left + 12, y = rc.top + rc.height / 2, vw = innerWidth, vh = innerHeight, Rm = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y)) * 1.06, D = REDUCED ? 200 : 620;
-  try { sessionStorage.setItem('niao-hand', JSON.stringify({ to: 'listen', t: Date.now(), x, y, c: C.INK, slot: 0, morph: dark ? 1 : 0 })); } catch (e) {}
+  try { sessionStorage.setItem('ta-hand', JSON.stringify({ to: 'listen', t: Date.now(), x, y, c: C.INK, slot: 0, morph: dark ? 1 : 0 })); } catch (e) {}
   const cv = document.createElement('canvas'); cv.id = 'veil'; cv.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none'; document.body.appendChild(cv);
   const g = fitCanvas(cv, vw, vh), t0 = performance.now();
   const tick = now => { const p = clamp((now - t0) / D, 0, 1), e = smoother(p), r = 7 * Math.pow(Rm / 7, e);
@@ -2298,7 +2298,7 @@ $('file').addEventListener('change', ev => {
   const f = ev.target.files && ev.target.files[0]; if (f && /^image\//.test(f.type)) post('', { file: URL.createObjectURL(f) }); ev.target.value = '';   // 样子稿：只在本机看，不往外传
 });
 $('qchip').querySelector('button').addEventListener('click', () => setQuote(null));
-$('menu').addEventListener('click', ev => { ev.stopPropagation(); dark = !dark; try { localStorage.setItem('niao_side', dark ? 'night' : 'day'); } catch (e) {} document.body.classList.toggle('dark', dark); layout(); if (stNow === 'think') drawCrab(); });
+$('menu').addEventListener('click', ev => { ev.stopPropagation(); dark = !dark; try { localStorage.setItem('ta_side', dark ? 'night' : 'day'); } catch (e) {} document.body.classList.toggle('dark', dark); layout(); if (stNow === 'think') drawCrab(); });
 const info = homeInfo('chat', 0, dark ? 1 : 0);
 $('back').addEventListener('click', () => leaveHome(info, $('back')));
 backMoon($('back'));

@@ -48,18 +48,23 @@ Nyx 其他房间要的接口，每个都可以不装，没装的那个只回 503
 
 聊天页 Gauge 最底下的 keys：给 AI 的 API key 从手机填进服务器上的 `agent-keys.env`（600），备注另存，值不再回到页面，会改 shell/代理/Agent 行为的名字一律拒收。Claude Code 由 `start-channel.sh` 在开窗时告诉它文件位置；Codex 桥经 `/channel/keys`（只认本机直连）抄一份 600 的副本并告诉它位置。两边都是用到时在那条命令里 source，不重启。原版没有这一块。
 
-## Nyx 2.0.0：祂要的口子（新文件 `relay/nyx_niao.py`，另在 `relay/nyx_extras.py` 加两处）
+## Nyx 2.0.0：祂要的口子（新文件 `relay/nyx_ta.py`，另在 `relay/nyx_extras.py` 加两处）
 
-祂（`niao/`）这层皮用到、原来没有的接口。`nyx_niao.py` 由 `nyx_extras.register` 挂上，数据都放在数据库旁边，不进网页目录：
+祂（`ta/`）这层皮用到、原来没有的接口。`nyx_ta.py` 由 `nyx_extras.register` 挂上，数据都放在数据库旁边，不进网页目录：
 
 - `POST /app/react` `{id, emoji}`：她给某条消息的回应，空的就是收回；流里推一条 `reaction`，Claude Code 那头会收到一句提示。
 - `GET|POST /app/prefs` `{ts, data}`：手机设置（头像、存的表情、颜文字、常用语…）在服务器上的一份副本，按 ts 后写的赢；来自未来的 ts 压回现在；推上来没提到的头像和表情不会被抹掉；上一份留成 `prefs.prev`。
 - `GET|POST /app/group_pin` `{text}`：群聊置顶那一行。
 - `GET|POST /app/pocket`、`POST /app/pocket/{id}`：口袋。分享进来的东西（`by` 不是 `note`）攒三分钟（`RELAY_POCKET_NOTIFY_DELAY`）合成一条告诉 AI。
 - `GET|POST /app/todo-inbox`、`POST /app/todo-inbox/ack`：AI 往手机待办里丢事情的信箱（`NYX_TODO_INBOX` 可改位置）。
-- `POST /app/stash/chunk`、`POST /app/stash/done`、`GET /app/stash/list`、`GET /app/stash/file/{id}`、`POST /app/stash/delete`：寄存，大文件切块传上来，取的时候要带钥匙（不放在不验钥匙的 `/uploads` 下）。目录 `RELAY_STASH_DIR`，默认数据库旁边的 `stash/`。
 
 `relay/nyx_extras.py`：
 
 - `POST /app/effort` `{level}`（Claude Code）：窗口空着就当场打 `/effort`，忙着先记进 `effort_pending`，空下来再打。
 - `GET /app/context`：跟 `GET /app/window` 同一份数，换成祂聊天页读的名字（`sid`、`active_sid`、`usage_tokens`、`line_k`）。
+
+## 语音转写 SenseVoice（可选，新目录 `relay/stt-sense/`，另在 `relay/app.py` 动一处）
+
+- `stt-sense/server.py`：本机转写服务，SenseVoice-Small（FunAudioLLM / FunASR，FunASR Model License 1.1）用 sherpa-onnx（Apache-2.0）跑 int8，只听 127.0.0.1:3090。模型不进仓库，`get-model.sh` 从 sherpa-onnx 官方 release 下。
+- `stt-sense/transcribe.py`：给 `RELAY_VOICE_TRANSCRIBE_CMD` 用的小脚本；`setup.sh` 装依赖、下模型、起 `nyx-stt` 服务、给本机每个 relay 写上这一项；`install.sh --stt` 会调它，不加就不装。
+- `relay/app.py` `[Nyx]`：转写命令退出码 3 表示什么都没听到，`/app/voice` 这时回 `{"id": null, "text": "", "empty": true}`，删掉那段录音，不进聊天、不转给 AI（通话里的静音和咳嗽不再变成一条「发来一段语音」）。

@@ -1,0 +1,3 @@
+# SenseVoice server (relay/stt-sense/server.py). Known-good set.
+sherpa-onnx==2.0.1
+numpy>=1.24

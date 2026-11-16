@@ -1,5 +1,5 @@
 /* 聊天页、听歌页共用的一小套：颜色、纸面颗粒、燕子、返回月亮、进出的转场。
-   进来：主页把圆心和当时的态记在 sessionStorage「niao-hand」，这里从同一个圆心把页面一圈圈显出来；没有记录就只淡入。
+   进来：主页把圆心和当时的态记在 sessionStorage「ta-hand」，这里从同一个圆心把页面一圈圈显出来；没有记录就只淡入。
    回去：点左上的返回月亮，月亮放大盖满全屏（圆是主页那一态的底色），再跳 index.html?splash=0&morph=&slot=，主页那边把满屏的圆缩回成入口月亮。 */
 (function () {
 'use strict';
@@ -84,11 +84,11 @@ function hideVeil() { if (veil) { vg.clearRect(0, 0, innerWidth, innerHeight); v
 
 /* 这一页回主页时用哪一态、哪个入口 */
 function homeInfo(page, defSlot, defMorph) {
-  const h = ssGet('niao-hand'); let info = null;
-  if (h && h.to === page && Date.now() - h.t < 15000) { info = { slot: h.slot | 0, morph: h.morph ? 1 : 0, x: h.x, y: h.y, fresh: true }; ssSet('niao-hand', null); }
-  const keep = ssGet('niao-ret-' + page);
+  const h = ssGet('ta-hand'); let info = null;
+  if (h && h.to === page && Date.now() - h.t < 15000) { info = { slot: h.slot | 0, morph: h.morph ? 1 : 0, x: h.x, y: h.y, fresh: true }; ssSet('ta-hand', null); }
+  const keep = ssGet('ta-ret-' + page);
   if (!info) info = keep ? { slot: keep.slot | 0, morph: keep.morph ? 1 : 0, fresh: false } : { slot: defSlot, morph: defMorph, fresh: false };
-  ssSet('niao-ret-' + page, { slot: info.slot, morph: info.morph });
+  ssSet('ta-ret-' + page, { slot: info.slot, morph: info.morph });
   return info;
 }
 
@@ -124,7 +124,7 @@ function revealIn(info, stage, onDone) {   // 页面内容从圆心往外显出�
 function leaveHome(info, fromEl) {   // 返回月亮放大盖满全屏，圆里是主页那一态的底色
   if (window.__leaving) return; window.__leaving = true;
   const rc = fromEl.getBoundingClientRect(), x = rc.left + rc.width / 2, y = rc.top + rc.height / 2, vw = innerWidth, vh = innerHeight, Rm = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y)) * 1.06, r0 = 7, fill = info.morph ? C.INK : C.PAPER, D = REDUCED ? 200 : 680, t0 = performance.now(), g = veilCanvas();
-  const go = () => { ssSet('niao-back', { slot: info.slot, morph: info.morph, t: Date.now() }); location.href = 'index.html?splash=0&morph=' + info.morph + '&slot=' + info.slot; };
+  const go = () => { ssSet('ta-back', { slot: info.slot, morph: info.morph, t: Date.now() }); location.href = 'index.html?splash=0&morph=' + info.morph + '&slot=' + info.slot; };
   const tick = now => { const p = clamp((now - t0) / D, 0, 1), e = smoother(p), r = r0 * Math.pow(Rm / r0, e), rin = sstep(0.05, 0.32, p) * Math.max(r * 0.86, r - 11);
     g.clearRect(0, 0, vw, vh); iris(g, x, y, r, rin, fill, vw, vh);
     if (p < 1 || ++held < 3) requestAnimationFrame(tick); else go(); };   // 满屏的那一帧多停两帧，确认已经画上屏再跳

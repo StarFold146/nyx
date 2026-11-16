@@ -1,17 +1,17 @@
 /* 一起听：唱片就是从正上方看下去的旋转楼梯井。踏步沿一条对数螺线一圈圈绕向井心，播放时整盘顺时针转、踏步往井里流。
    外沿一条蓝丝带走进度（可拖），一只燕子落在丝带头上当唱针。歌词像台阶一样一行行往右下错开，随播放往上走。
    默认墨黑面；?dark=0 纸白面。
-   11/12 接真歌（样子不动）：照 music.html（本站那页，比 Nyx 的 listen.js 全）接第一只后台的网易云桥。
-     POST {第一只}/app/music/{daily|me|likelist|playlists|tracks|recent|search|url|lyric|like}，GET {第一只}/app/stash/list（寄存里的录音）；
+   11/12 接真歌（样子不动）：接第一只后台的网易云桥。
+     POST {第一只}/app/music/{daily|me|likelist|playlists|tracks|recent|search|url|lyric|like}；
      换歌、播停、开回一起听时 POST /app/music/now {id, name, artist, state, together, force}，聊天页页眉的小音符读的就是它。
-     钥匙读 localStorage 的 nyx_key，只放 Authorization 头；寄存的录音带着钥匙拉成 blob 再放，钥匙不进网址。
+     钥匙读 localStorage 的 nyx_key，只放 Authorization 头，钥匙不进网址。
    ?demo=1：原来的样子稿，示例总长 3:40、按 5.5 倍走，不发任何请求。 */
 (function () {
 'use strict';
 const { C, TAU, PI, clamp, lerp, sstep, smoother, rng, hash, dot, birdP, PERCH, setupGrain, fitCanvas, spots, pencil, backMoon, homeInfo, revealIn, leaveHome, Q, REDUCED } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), cv = $('cv'), lyrEl = $('lyr'), au = $('au'), shelf = $('shelf'), rowsEl = $('rows');
-const dark = Q.has('dark') ? Q.get('dark') !== '0' : (() => { try { return localStorage.getItem('niao_side') !== 'day'; } catch (e) { return true; } })();   // 网址没说就跟主页的面，没记过默认深
+const dark = Q.has('dark') ? Q.get('dark') !== '0' : (() => { try { return localStorage.getItem('ta_side') !== 'day'; } catch (e) { return true; } })();   // 网址没说就跟主页的面，没记过默认深
 document.body.classList.toggle('dark', dark);
 const PERCH2D = new Path2D(PERCH);
 const LIVE = Q.get('demo') !== '1';
@@ -231,7 +231,7 @@ function msg(html) { const el = $('msg'); el.innerHTML = html || ''; el.hidden =
 function gateHTML(kind) { return (kind === 'auth' ? '钥匙不认了，' : '还没带钥匙，') + '<a href="../index.html">去登录</a>'; }
 
 /* =====================================================================
-   后台：家里的东西走第一只（config.js 的 relay，默认 /relay），同 Nyx app.js 和 music.html
+   后台：家里的东西走第一只（config.js 的 relay，默认 /relay），同 Nyx app.js
    ===================================================================== */
 let HOME = '/relay', KEY = null, gated = '';
 function loadConfig() { return new Promise(ok => { if (window.NYX) return ok(); const s = document.createElement('script'); s.src = '../config.js'; s.onload = s.onerror = () => ok(); document.head.appendChild(s); }); }
@@ -258,15 +258,15 @@ $('tgl').addEventListener('click', () => {
 });
 let AI = '祂';
 
-/* ---------- 播放顺序：顺序（整张循环）/ 随机 / 单曲，记在这台手机（同 music.html 的 music_mode） ---------- */
+/* ---------- 播放顺序：顺序（整张循环）/ 随机 / 单曲，记在这台手机（music_mode） ---------- */
 const MODES = ['order', 'shuffle', 'one'], MODE_NAME = { order: '顺序', shuffle: '随机', one: '单曲' }, MODE_LONG = { order: '顺序播放', shuffle: '随机播放', one: '单曲循环' };
 let mode = (() => { const m = ls('music_mode') || ls('nyx_play_mode'); return MODES.includes(m) ? m : 'order'; })(), plan = null;
 function paintMode() { const b = $('mode'); b.querySelector('span').textContent = MODE_NAME[mode]; b.setAttribute('aria-label', '播放顺序：' + MODE_LONG[mode]); }
 $('mode').addEventListener('click', () => { mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length]; plan = null; ahead = null; if (LIVE) lsSet('music_mode', mode); paintMode(); toast(MODE_LONG[mode]); if (cur) fetchAhead(); });
 
-/* ---------- 点歌：推荐 / 歌单 / 最近 / 搜索 / 寄存，一行一首 ---------- */
-const TABS = [['daily', '推荐'], ['list', '歌单'], ['recent', '最近'], ['search', '搜索'], ['stash', '寄存']];
-const TAB_EN = { daily: 'for you', list: 'a list', recent: 'recent', search: 'found', stash: 'kept' };
+/* ---------- 点歌：推荐 / 歌单 / 最近 / 搜索，一行一首 ---------- */
+const TABS = [['daily', '推荐'], ['list', '歌单'], ['recent', '最近'], ['search', '搜索']];
+const TAB_EN = { daily: 'for you', list: 'a list', recent: 'recent', search: 'found' };
 let tab = (() => { const t = ls('music_tab'); return TABS.some(x => x[0] === t) ? t : 'daily'; })(), view = [], viewKind = 'songs', viewTab = tab, uid = null, likes = new Set(), lastSearch = [], plTok = null, srcTab = tab;
 $('tabs').innerHTML = TABS.map(t => `<button type="button" data-t="${t[0]}">${t[1]}</button>`).join('');
 function hint(t) { rowsEl.innerHTML = '<p class="hint">' + t + '</p>'; }
@@ -294,21 +294,15 @@ async function loadTab(t) {
   try {
     if (t === 'daily') { const d = await music('daily'); if (tab !== t) return; renderSongs((d.data && d.data.dailySongs) || [], '今天的推荐还没出来。'); }
     else if (t === 'recent') { const d = await music('recent', { limit: 100 }); if (tab !== t) return; renderSongs(((d.data && d.data.list) || []).map(x => x.data).filter(Boolean), '还没有最近播放。'); }
-    else if (t === 'stash') { const v = await stashSongs(); if (tab !== t) return; renderSongs(v, '寄存里还没有音频。'); }
     else if (t === 'list') { await ensureMe(); const d = await music('playlists', { uid, limit: 100 }); if (tab !== t) return; renderPlaylists(d.playlist || []); }
   } catch (e) { if (tab === t) showErr(e); }
 }
 function showErr(e) { if (e && e.auth) return; hint('网易云那头没接上，过一会儿再试试。'); }
-// 寄存里的音频（同 music.html）：不走网易云，id 带 stash: 前缀；文件要钥匙，放的时候带着钥匙拉成 blob
-async function stashSongs() {
-  const d = await req('/app/stash/list').then(r => r.json());
-  return (d.items || []).filter(it => /^audio\//.test(it.mime || '')).map(it => ({ id: 'stash:' + it.id, sid: it.id, name: String(it.name || '').replace(/\.[^.]+$/, ''), ar: [{ name: '寄存 · 自己录的' }], al: { picUrl: '' }, coverUrl: '' }));
-}
 async function openPlaylist(p) {
   showSub(p.name + ' · ' + (p.trackCount | 0) + ' 首'); hint('在翻这张歌单……');
   const tok = Symbol(); plTok = tok; let all = [];
   try {
-    for (let off = 0; off < (p.trackCount | 0); off += 300) {   // 一页三百首，先给第一页，后面的接着拉（同 music.html）
+    for (let off = 0; off < (p.trackCount | 0); off += 300) {   // 一页三百首，先给第一页，后面的接着拉
       const d = await music('tracks', { id: p.id, limit: 300, offset: off }); if (plTok !== tok) return;
       all = all.concat(d.songs || []); renderSongs(all, '这张歌单是空的。'); if (!(d.songs || []).length) break;
     }
@@ -347,7 +341,7 @@ $('shut').addEventListener('click', () => setShelf(false));
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && shelfOn) setShelf(false); });
 
 /* =====================================================================
-   播放（照 music.html：先放一段无声占住 <audio>、下一首的链接提前拉好、放不了就跳过）
+   播放（先放一段无声占住 <audio>、下一首的链接提前拉好、放不了就跳过）
    ===================================================================== */
 let queue = [], qi = -1, cur = null, ahead = null, blobUrl = null, repState = '', repT = 0;
 const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
@@ -355,13 +349,12 @@ const isSilent = () => au.src === SILENT || !au.src;
 function pickNext() { if (mode === 'shuffle' && queue.length > 1) { let j; do { j = Math.floor(Math.random() * queue.length); } while (j === qi); return j; } return (qi + 1) % queue.length; }
 function primeAudio() { if (!au.paused) return; try { au.src = SILENT; const p = au.play(); if (p) p.catch(() => {}); } catch (_) {} }
 async function srcOf(s) {
-  if (s.sid) { const b = await req('/app/stash/file/' + encodeURIComponent(s.sid)).then(r => r.blob()); return URL.createObjectURL(b); }
   const d = await music('url', { id: s.id, level: 'exhigh' }); return (d.data && d.data[0] && d.data[0].url) || '';
 }
 async function fetchAhead() {
   if (!queue.length || !LIVE) return;
   if (plan == null) plan = pickNext();
-  const n = queue[plan]; if (!n || n.sid || (ahead && ahead.id === n.id)) return;   // 寄存的录音到时候再拉
+  const n = queue[plan]; if (!n || (ahead && ahead.id === n.id)) return;
   try { const u = await srcOf(n); if (u) ahead = { id: n.id, url: u, t: Date.now() }; } catch (_) {}
 }
 function setSrc(u) { if (blobUrl && blobUrl !== u) { try { URL.revokeObjectURL(blobUrl); } catch (_) {} blobUrl = null; } if (/^blob:/.test(u)) blobUrl = u; au.src = u; }
@@ -430,20 +423,19 @@ function paintNow() {
 }
 function paintEmpty() { paintSong('还没放歌', '', 'side a'); DUR = 240; S.t = 0; setCover(null); paintLike(); if (!gated) msg('从右下「点歌」挑一首'); }
 function paintLike() {
-  const b = $('like'), can = LIVE ? !!cur && !cur.sid : true, on = LIVE ? !!cur && likes.has(cur.id) : demoLiked;
+  const b = $('like'), can = LIVE ? !!cur : true, on = LIVE ? !!cur && likes.has(cur.id) : demoLiked;
   b.hidden = !can; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.setAttribute('aria-label', on ? '已喜欢，点一下取消' : '喜欢');
 }
 $('like').addEventListener('click', async () => {
   if (!LIVE) { demoLiked = !demoLiked; paintLike(); toast(demoLiked ? '放进我喜欢了' : '从我喜欢里拿掉了'); return; }
-  if (!cur || cur.sid) return; const want = !likes.has(cur.id), id = cur.id;
+  if (!cur) return; const want = !likes.has(cur.id), id = cur.id;
   try { await music('like', { id, like: want }); want ? likes.add(id) : likes.delete(id); paintLike(); toast(want ? '放进我喜欢了' : '从我喜欢里拿掉了'); } catch (e) { if (!(e && e.auth)) toast('没点上'); }
 });
 
-/* ---------- 歌词（网易云的 lrc 文本；寄存的录音没有） ---------- */
+/* ---------- 歌词（网易云的 lrc 文本） ---------- */
 let lyrTok = 0;
 async function loadLyric(s) {
   const tok = ++lyrTok; LYR = []; buildLyrics(); S.cur = 0;
-  if (s.sid) { msg('现场录的，没有歌词。'); return; }
   msg('…');
   let text = '';
   try { const d = await music('lyric', { id: s.id }); text = (d.lrc && d.lrc.lyric) || ''; } catch (e) { if (tok === lyrTok && !(e && e.auth)) msg('歌词没拉到。'); return; }

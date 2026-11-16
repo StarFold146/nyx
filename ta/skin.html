@@ -37,22 +37,23 @@ a{color:inherit;text-decoration:none}
 <div id="ttl"><span class="ghost">Skins</span><b>换皮肤</b></div>
 <div id="rule"></div>
 <div id="list">
-  <button class="o" data-s="niao"><b>祂</b><i>this one</i><span>留在这儿</span></button>
+  <button class="o" data-s="ta"><b>祂</b><i>this one</i><span>留在这儿</span></button>
   <button class="o" data-s="ink"><b>墨河</b><i>ink</i><span>日月</span></button>
   <button class="o" data-s="tree"><b>树</b><i>tree</i><span>日月</span></button>
 </div>
 <p id="note">换好回到 Nyx 的家</p>
 <script>
 (function () {
-  /* 记在 nyx_home：niao 是祂，ink / tree 是 Nyx 原版主页的两种（../index.html 读同一个键） */
-  var KEY = 'nyx_home', cur = 'niao';
-  try { cur = localStorage.getItem(KEY) || 'niao'; } catch (e) {}
+  /* 记在 nyx_home：ta 是祂（旧值 niao 也认），ink / tree 是 Nyx 原版主页的两种（../index.html 读同一个键） */
+  var KEY = 'nyx_home', cur = 'ta';
+  try { cur = localStorage.getItem(KEY) || 'ta'; } catch (e) {}
+  if (cur === 'niao') cur = 'ta';
   document.querySelectorAll('.o').forEach(function (b) {
     if (b.dataset.s === cur) b.classList.add('on');
     b.onclick = function () {
       var s = b.dataset.s;
       try { localStorage.setItem(KEY, s); } catch (e) {}
-      location.href = s === 'niao' ? 'index.html' : '../index.html';
+      location.href = s === 'ta' ? 'index.html' : '../index.html';
     };
   });
   window.__ready = true;

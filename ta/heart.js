@@ -9,7 +9,7 @@
 const { C, TAU, PI, clamp, rng, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, Q, REDUCED } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), scroll = $('scroll'), plate = $('plate'), art = $('art'), leads = $('leads'), groupsEl = $('groups'), msg = $('msg'), deco = $('deco');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -220,7 +220,7 @@ const ANCHORS = [[123, 31], [44, 124], [177, 166], [127, 80], [56, 62], [104, 16
    解剖：前面观，心室是斜放的钝圆锥，长轴约 55°，心尖圆钝指向观者右下、左边一道小切迹；右缘是右心房，下缘一条往右下倾的缓弧，左缘饱满外凸再收进心尖。
    肺动脉干从右室圆锥发出、往右上斜，压在升主动脉根部前面；弓上三支从左到右头臂干、左颈总、左锁骨下；上腔静脉在右上进右房；右心耳盖在主动脉根右前方，左心耳在肺动脉干右侧。 */
 let SEAM = 140;   // 心电线在图里的高度（图内单位）。线可以上下拖：往上拖，线下的数字多；往下拖，线上的血多
-const SEAM_MIN = 62, SEAM_MAX = 196, SEAM_KEY = 'niao_heart_seam';
+const SEAM_MIN = 62, SEAM_MAX = 196, SEAM_KEY = 'ta_heart_seam';
 try { const v = parseFloat(localStorage.getItem(SEAM_KEY)); if (v >= SEAM_MIN && v <= SEAM_MAX && !new URLSearchParams(location.search).has('demo')) SEAM = v; } catch (e) {}
 const BODY = [[52, 94], [44, 106], [39.5, 124], [38.5, 141], [40.5, 156], [45.5, 168], [54, 175], [68, 180], [88, 185.5], [110, 190.5], [132, 195.5], [149, 200], [157.5, 202.8], [161.5, 202.2], [165.5, 204.4], [172, 207], [177.5, 202], [182.5, 191], [186.2, 174.5], [187.2, 157], [184.5, 139], [178, 126], [169, 115.5], [161, 110.5], [148, 105], [132, 104], [112, 106], [94, 104], [74, 98]];
 const AVG = [[77, 103], [71, 121], [63.5, 141], [56, 159], [51, 173]];   // 右房室沟
@@ -353,7 +353,7 @@ function capPencil(tb) {   // 断口：椭圆带一圈壁厚，管腔里几笔�
 }
 function folds(vs) { vs.forEach(([p, d, e, h]) => { const L = (1.3 + 2 * e * h) * S, bend = (SKR() - 0.5) * 0.9; hand(cm([p, [p[0] + d[0] * L * 0.5 - d[1] * bend, p[1] + d[1] * L * 0.5 + d[0] * bend], [p[0] + d[0] * L, p[1] + d[1] * L]], 4), pen(HT, { a: 0.3, ov: 0.3 })); }); }
 /* ---------- 血 ---------- */
-function fillDigits() {   // 等所有数字流都排好了再填字：有数据用这页的真数字，没数据就用短划；最靠心尖那一串留给 niao_heart_since
+function fillDigits() {   // 等所有数字流都排好了再填字：有数据用这页的真数字，没数据就用短划；最靠心尖那一串留给 ta_heart_since
   let near = null, bd = 1e9; const ap = T(AP);
   STREAMS.forEach(st => { if (!st.pts.length) return; const d = Math.min(...st.all.map(p => Math.hypot(p[0] - ap[0], p[1] - ap[1]))); if (d < bd) { bd = d; near = st; } });
   STREAMS.forEach(st => {
@@ -454,8 +454,8 @@ function buildDig() {   // 数字流的字：这页三组文件的字节数和�
   GROUPS.forEach(g => g.files.forEach(f => { const d = new Date(f.mtime); if (Number.isFinite(+f.size)) out.push(String(Math.round(+f.size))); if (!isNaN(d)) out.push(p2(d.getMonth() + 1) + p2(d.getDate()), p2(d.getHours()) + p2(d.getMinutes())); }));
   DIG = out.length ? out.join(' ') + ' ' : '';
 }
-function readPrivate() {   // 自家的两个口子：niao_heart_since（日期）→ 最靠心尖那串数字显示到今天的天数；niao_heart_motto → 替换铭文下那行小字。都没有就什么也不多
-  const s = ls('niao_heart_since'), m = ls('niao_heart_motto');
+function readPrivate() {   // 自家的两个口子：ta_heart_since（日期）→ 最靠心尖那串数字显示到今天的天数；ta_heart_motto → 替换铭文下那行小字。都没有就什么也不多
+  const s = ls('ta_heart_since'), m = ls('ta_heart_motto');
   SINCE = null; MOTTO = m && m.trim() ? m.trim().slice(0, 40) : null;
   if (s) { const d = new Date(s.trim() + (/^\d{4}-\d{2}-\d{2}$/.test(s.trim()) ? 'T00:00:00' : '')); if (!isNaN(d)) { const t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.floor((t - d) / 86400000); if (n >= 0) SINCE = n; } }
 }

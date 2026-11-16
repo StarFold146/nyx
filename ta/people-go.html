@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>家里</title>
+<!-- 联系人入口（11/13）：读 localStorage「ta_people_look」，立刻跳到选的那一套（f 邮票夹 / a 小星球名单，默认 f），查询参数和 # 原样带过去。以后入口都指这里。 -->
+<script>(function(){var d=document.documentElement;d.style.background=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('ta_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';var v='f';try{if(localStorage.getItem('ta_people_look')==='a')v='a'}catch(e){}location.replace('people-'+v+'.html'+location.search+location.hash)})()</script>
+</head>
+<body><noscript><a href="people-f.html">家里</a></noscript><script src="tap.js?v=1115t"></script>
+</body>
+</html>

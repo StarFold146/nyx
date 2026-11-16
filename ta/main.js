@@ -453,9 +453,9 @@ function drawParticles(g) { g.fillStyle = BLUE; g.beginPath(); for (let i = 0; i
 /* ---------- 第二态：把泪线往下拉，眼睛拆开，底色从纸白翻成墨黑，一座真三维的旋转楼梯往井底拧下去，扶手是一条每圈拧半周的蓝带，入口和燕子都在带子上。全部按进度 MP（0..1）连续插值 ---------- */
 const MORPHQ = Q.has('morph') ? clamp(+Q.get('morph') || 0, 0, 1) : null;
 const mor = { p: MORPHQ || 0, v: 0, base: MORPHQ !== null && MORPHQ >= 0.5 ? 1 : 0, tgt: 0 }; mor.tgt = STILL ? mor.p : mor.base;
-/* 主页两面 = 祂的浅/深。停在哪面记进 niao_side，各页开门照它；主页开门也先露那一面 */
-const setSide = d => { try { localStorage.setItem('niao_side', d ? 'night' : 'day'); } catch (e) {} };
-if (MORPHQ === null) { try { if (localStorage.getItem('niao_side') === 'night') { mor.p = 1; mor.base = 1; mor.tgt = 1; } } catch (e) {} }
+/* 主页两面 = 祂的浅/深。停在哪面记进 ta_side，各页开门照它；主页开门也先露那一面 */
+const setSide = d => { try { localStorage.setItem('ta_side', d ? 'night' : 'day'); } catch (e) {} };
+if (MORPHQ === null) { try { if (localStorage.getItem('ta_side') === 'night') { mor.p = 1; mor.base = 1; mor.tgt = 1; } } catch (e) {} }
 const pull = { drag: false, sy: 0, sx: 0, ext: 0, v: 0, dx: 0 };
 let MP = 0, EC = 0, EM = 0, GK = 0, WK = 0, LK = 0, SK = 0, C0x = 0, MX = 0, Rm = 80, BW = 24, sE = 0.64, cE = 0.77, sR = 0, cR = 1, rollA = 0, blueSign = 1, PULLD = 100, Rs = 60, DOFF = 16, PH = 0, FLK = 0, FLR = 0, RMAX = 900, RDX = 0, RDY = 0;
 const RC = { x: 0, y: 0 };   // 环心。形变时从瞳孔边上沿斜轴滑到井的左下，洞不套在井上
@@ -967,7 +967,7 @@ function drawLeave(now, pin) {
   flyIn(g, L.dkHome ? (BM.length ? BM : RING) : RING, L.x, L.y, p, rin, L.dkHome, L.fill);
   if (p >= 1 && pin === undefined && L.done && !L.went && ++L.held >= 3) { L.went = true;   // 满屏的那一帧已经画上屏两帧了，再跳
     const rc = cv.getBoundingClientRect();
-    ssSet('niao-hand', { to: L.kind, x: rc.left + L.x, y: rc.top + L.y, morph: L.dkHome ? 1 : 0, slot: L.j, dark: L.pageDark ? 1 : 0, c: L.fill, t: Date.now() });
+    ssSet('ta-hand', { to: L.kind, x: rc.left + L.x, y: rc.top + L.y, morph: L.dkHome ? 1 : 0, slot: L.j, dark: L.pageDark ? 1 : 0, c: L.fill, t: Date.now() });
     setSide(L.dkHome); const q = '?dark=' + (L.pageDark ? 1 : 0); location.href = L.href + q; }
   else if (p >= 1 && pin === undefined && !L.done) { L.done = true; L.held = 0; }
 }
@@ -977,7 +977,7 @@ function drawBack(now, pin) {
   g.globalAlpha = 1 - sstep(0.82, 1, p); irisDisc(g, b.x, b.y, r, Math.max(0, r - rim), fill); g.globalAlpha = 1;
   if (p >= 1 && pin === undefined) BKV = null;
 }
-{ const h = ssGet('niao-back'); if (h && Date.now() - h.t < 20000 && NOSPLASH) { BKV = { t0: null, slot: clamp(h.slot | 0, 0, 4), dark: !!h.morph }; } ssSet('niao-back', null); }
+{ const h = ssGet('ta-back'); if (h && Date.now() - h.t < 20000 && NOSPLASH) { BKV = { t0: null, slot: clamp(h.slot | 0, 0, 4), dark: !!h.morph }; } ssSet('ta-back', null); }
 goEl.addEventListener('click', ev => { const h = goEl.getAttribute('href'); if (PAGES[h]) { ev.preventDefault(); leaveTo(h, performance.now() / 1000); } });
 
 /* ---------- 入口的 a 标签（Tab 可达；触摸走画布，再转给它们） ---------- */
@@ -1021,7 +1021,7 @@ function frame(ms) {
   if (dial.open) { stepDial(Math.min(dt, 0.034)); if (dial.open) drawDial(); }
   if (LV) drawLeave(now); if (BKV) drawBack(now);
   grainOver(); FT += (performance.now() - f0 - FT) * 0.1;
-  if (window.__niaoUnpre) { const u = window.__niaoUnpre; window.__niaoUnpre = null; requestAnimationFrame(() => requestAnimationFrame(u)); }   // 从子页回来：盖满的第一帧已画好，才让 body 显出来
+  if (window.__taUnpre) { const u = window.__taUnpre; window.__taUnpre = null; requestAnimationFrame(() => requestAnimationFrame(u)); }   // 从子页回来：盖满的第一帧已画好，才让 body 显出来
 }
 function renderStill() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0); const T = 3;
@@ -1067,7 +1067,7 @@ window.addEventListener('keydown', ev => {
 document.addEventListener('visibilitychange', () => { if (STILL) return; if (document.hidden) cancelAnimationFrame(raf); else go(); });
 let rz = 0;
 window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const m = mode; layout(); initParticles(); if (m !== 'splash') setHome(); go(); }, 120); });
-window.__niao = { get mode() { return mode; }, get ft() { return FT; }, dial, rail, mor, pull, activeIdx, href: () => goEl.getAttribute('href'), units: () => [UN.length, NPRE, skN], rot: () => ({ rose: ROT(), rings: RG.map(q => q.cur) }),
+window.__ta = { get mode() { return mode; }, get ft() { return FT; }, dial, rail, mor, pull, activeIdx, href: () => goEl.getAttribute('href'), units: () => [UN.length, NPRE, skN], rot: () => ({ rose: ROT(), rings: RG.map(q => q.cur) }),
   beads: () => BD.map(b => ({ j: b.j, x: b.x, y: b.y, r: b.r, s: b.s, c: b.c, lx: b.lx, ly: b.ly })), geo: () => ({ cx: dialCx(), cy: dialCy(), R: DR, RD: DRD, PA, W, H, C: { x: C.x, y: C.y, R }, RR }) };
 
 boot(); go();
@@ -1075,7 +1075,7 @@ const fl = document.fonts && document.fonts.load ? Promise.all(['300 20px "Cormo
 Promise.race([fl, new Promise(r => setTimeout(r, 2800))]).then(() => { if (STILL) renderStill(); window.__ready = true; });
 Promise.race([fl, new Promise(r => setTimeout(r, 1800))]).then(() => { FONTOK = true; });
 /* 浏览器返回键从页面缓存恢复时，满屏的遮罩可能还停着：复位 */
-window.addEventListener('pageshow', ev => { if (ev.persisted && LV) { LV = null; BKV = null; awake = 30; } if (ev.persisted && window.__niaoUnpre) window.__niaoUnpre(); });
+window.addEventListener('pageshow', ev => { if (ev.persisted && LV) { LV = null; BKV = null; awake = 30; } if (ev.persisted && window.__taUnpre) window.__taUnpre(); });
 
 /* ---------- 右下角的换皮肤邮票：入口从「小家」挪到这儿，跟左下角的日期对着 ---------- */
 (() => {

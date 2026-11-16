@@ -146,6 +146,25 @@ curl -N "https://your-domain.example/relay/app/stream?token=$S"
 
 ---
 
+## 3b. 语音转写 SenseVoice（可选——通话和语音消息变成字）
+
+不装也能用：通话里浏览器自己转的字照样能发；只是传上来的录音没人转，会作为附件送达。
+想让服务器自己转，用 `stt-sense/` 里那一套：阿里 FunAudioLLM 开源的 SenseVoice-Small，用 sherpa-onnx 跑 int8，只用 CPU，只听 127.0.0.1。
+
+```bash
+bash ~/nyx/relay/stt-sense/setup.sh      # 或者装的时候 install.sh --stt
+```
+
+它会：装 ffmpeg；在 `stt-sense/venv` 里装 sherpa-onnx；从 sherpa-onnx 官方 release 下模型
+（`sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`，<https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2>，
+下载约 1 GB，解开后只留 230 MB 的 `model.int8.onnx`）；起一个 `nyx-stt` 服务在 127.0.0.1:3090；在这台机器上每个 Nyx relay 的 `relay.env` 里写
+`RELAY_VOICE_TRANSCRIBE_CMD=<…>/stt-sense/transcribe.py` 再重启。
+
+- 想自己起：`stt-sense/start.sh` / `stop.sh`；模型放别处就设 `STT_MODEL_DIR`，ffmpeg 不在 PATH 里就设 `STT_FFMPEG`，端口 `STT_PORT`。
+- `transcribe.py` 把录音 POST 给服务、打出字；什么都没听到时退出码 3，relay 就不把这段静音发进聊天（`/app/voice` 回 `{"empty": true}`）。
+- 关掉：`sudo systemctl disable --now nyx-stt`，删掉 `relay.env` 里那行再重启 relay。
+- 模型许可是 FunASR Model License 1.1（模型文件夹里的 LICENSE），sherpa-onnx 是 Apache-2.0。
+
 ## 4. Web Push / VAPID（可选——AI 回复时推到手机锁屏）
 
 未读推送的逻辑：**只有当 PWA 不在前台**（没有 SSE 连着）时，AI 的 `reply` 才会推一条锁屏通知。前台开着就不打扰。

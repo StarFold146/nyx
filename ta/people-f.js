@@ -10,23 +10,22 @@
    蓝：划到谁谁带蓝——每枚的画像底稿是铅笔排线，另有一层蓝箔（有头像、睡着的是右肩一弯蓝月），离正中越近这层越亮。
    状态：睡着 = 整枚褪淡、画像只剩虚线轮廓（旧票）；在忙 = 右上角压一段蓝邮戳弧加一颗蓝点；正在聊的那位 = 名字上头一粒蓝点。
    群也是一页：拱窗里两三枚更小的邮票叠着，名字后面极小的人数。
-   点正中那枚：绕竖轴翻到背面（背胶纸、水印、齿孔照旧），背面是这位的档案：名字、备注（可改）、模型、此刻、换头像、换我的头像、查岗（只第一只有）。
+   点正中那枚：绕竖轴翻到背面（背胶纸、水印、齿孔照旧），背面是这位的档案：名字、备注（可改）、模型、此刻、换头像、换我的头像。
    右下角外停着一只铅笔燕子（pages.js 的 PERCH / birdD），点它：燕子起飞，蓝满月从起飞的地方涨满，去聊天页。右上角一个小切换钮去 A 版（小星球名单）。
    数据同 Nyx 联系人页（../contacts.html）：localStorage「nyx_contacts」[{name, relay, key, avatar?}]，没有就用 config.js 的第一只；
      醒没醒 GET <relay>/healthz 的 plugin_subs > 0（不带钥匙）；多久以前 GET <relay>/app/status 的 last_msg_age_sec；
      忙不忙 GET <relay>/app/busy 的 state（同聊天页 pollBusy，群不问）；群：列表里 /g 结尾的那条，没有就看第一只的 /g/healthz 有两位以上 members。
    背面（照搬 who.js）：localStorage nyx_avatar{后缀}、nyx_avatar_me、nyx_profile_remark{后缀}、nyx_prefs_ts；
      模型 GET <relay>/app/meter 的 model.name（翻到背面时才问，群不问）；上云 GET/POST 家里那只的 /app/prefs {ts, data}（翻到背面时才对一次）；
-     查岗只在 /relay 上有，盖一层 iframe 开查岗页（地址照 who.js）。
    点燕子：照 contacts.html 的 pick() 写回 nyx_relay / nyx_chat_key / nyx_ai（点第一只就清掉这三个、把钥匙写回 nyx_key），然后去 chat.html。
    底纹：纸纹之上一层很淡的「航线」——从这沓邮票底边聚向的那一点往上放出去的七根起航线、几道纬线和定位点；燕子头前接出独一一根蓝的。不画轨道和圆弧。
-   ?demo=1 示例数据，一个请求都不发；改备注、换头像只存在内存里（只有切换钮记一个 niao_people_look）。?dark=1 墨黑底。 */
+   ?demo=1 示例数据，一个请求都不发；改备注、换头像只存在内存里（只有切换钮记一个 ta_people_look）。?dark=1 墨黑底。 */
 (function () {
 'use strict';
 const { C, TAU, PI, clamp, smoother, sstep, rng, Q, REDUCED, dot, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, iris, ssSet, birdD, PERCH, litD } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), deck = $('deck'), note = $('note');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 document.body.classList.toggle('rm', REDUCED);
 const LIVE = Q.get('demo') !== '1';
@@ -886,7 +885,7 @@ function lookSVG(on) {   // on：当前这套（'f' 邮票 / 'a' 星球）实心
   const e = r + 0.6, dv = `<path d="M${f2(cx - ux * e)},${f2(cy - uy * e)}L${f2(cx + ux * e)},${f2(cy + uy * e)}" stroke="${ink}" stroke-width=".42"/>`;   // 这么小时分界线不出头，免得像个「⌀」
   return `<svg viewBox="0 0 30 14" aria-hidden="true"><defs><mask id="lkm"><rect x="-1" y="-1" width="13" height="16" fill="#fff"/><g fill="#000">${holes}</g></mask></defs>${st}${pl}${dv}</svg>`;
 }
-const LOOK = 'niao_people_look';
+const LOOK = 'ta_people_look';
 $('look').innerHTML = lookSVG('f');
 $('look').addEventListener('click', () => {
   if (window.__leaving) return;
@@ -1152,7 +1151,6 @@ deck.addEventListener('wheel', e => {
 }, { passive: false });
 document.addEventListener('keydown', e => {
   if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-  if (PH.classList.contains('on')) { if (e.key === 'Escape') phOff(); return; }
   if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(idx + 1); }
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(idx - 1); }
   else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
@@ -1164,7 +1162,7 @@ function tapCard(cd) {
   if (FLIP === cd) unflip(); else flip(cd);
 }
 
-/* ---------- 背面：这位的档案（照搬 who.js：名字、备注、模型、此刻、换头像、换我的头像、查岗） ---------- */
+/* ---------- 背面：这位的档案（同 who.js：名字、备注、模型、此刻、换头像、换我的头像） ---------- */
 const BK = document.createElement('div'); BK.className = 'face back';
 BK.innerHTML = `<canvas aria-hidden="true"></canvas><div class="bk" role="group" aria-label="档案">
   <div class="bh"><span class="no"></span><button class="rt" type="button" aria-label="翻回正面"><svg viewBox="-6 -6 12 12"><path d="M3.8,-1.6A4.2,4.2 0 1 0 4.1,1.4" fill="none" stroke="var(--fg2)" stroke-width=".5"/><path d="M2.2,-3.4L4,-1.4L5.6,-3.5" fill="none" stroke="var(--fg2)" stroke-width=".5" stroke-linejoin="miter"/></svg></button></div>
@@ -1172,7 +1170,7 @@ BK.innerHTML = `<canvas aria-hidden="true"></canvas><div class="bk" role="group"
   <div class="r rk"><span class="k">备注 · <i>nota</i></span><button class="v vRemark" type="button" aria-label="改备注"></button></div>
   <div class="r md"><span class="k">模型 · <i>machina</i></span><span class="v mono vModel"></span></div>
   <div class="r sa"><span class="k"><i>nunc</i> · 此刻</span><span class="v st vState" role="status"></span></div>
-  <div class="acts"><button type="button" class="bAv"><span class="me avA" aria-hidden="true"></span>换头像</button><button type="button" class="bPh" hidden>查岗</button><button type="button" class="bMe" hidden>换我的<span class="me avM" aria-hidden="true"></span></button></div>
+  <div class="acts"><button type="button" class="bAv"><span class="me avA" aria-hidden="true"></span>换头像</button><button type="button" class="bMe" hidden>换我的<span class="me avM" aria-hidden="true"></span></button></div>
   <p class="sync" role="status"></p></div>`;
 const bq = s => BK.querySelector(s);
 BK.addEventListener('click', e => { e.stopPropagation(); if (suppress) return; if (!e.target.closest('button, input, a')) unflip(); });
@@ -1224,7 +1222,6 @@ function paintBack() {
   bq('.avA').innerHTML = av ? `<img alt="" src="${esc(av)}">` : esc(initial(shown(c)));
   bq('.avM').innerHTML = okURL(me) ? `<img alt="" src="${esc(me)}">` : esc(initial(ME));
   bq('.bAv').setAttribute('aria-label', '换' + shown(c) + '的头像');
-  bq('.bPh').hidden = true;   // 查岗只在第一只上有（同 profile.js 83 行）
   setSync(syncNote);
 }
 /* 备注：点了就地变一道细线输入；回车存、Esc 放弃、失焦存；空的就删掉这条备注（同 who.js） */
@@ -1304,19 +1301,6 @@ function setSync(k) {
   else if (k === 'auth') el.innerHTML = '钥匙不认了 · <a href="../index.html">去登录</a>';
   else el.textContent = T[k] || '';
 }
-/* 查岗：盖一层纸，中间一台细线描的手机（同 who.js） */
-const PH = $('ph');
-function phOn() {
-  const f = PH.querySelector('iframe');
-  if (!f.getAttribute('src') && !f.getAttribute('srcdoc')) {
-    if (LIVE) f.src = 'about:blank';
-    else f.srcdoc = `<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;display:grid;place-items:center;background:${dark ? C.INK : '#f8f6f0'};font:300 10px serif;letter-spacing:.2em;color:${C.GREY}">演示里不开这台手机</body>`;
-  }
-  PH.style.display = 'flex'; requestAnimationFrame(() => PH.classList.add('on')); $('phX').focus();
-}
-function phOff() { PH.classList.remove('on'); setTimeout(() => { if (!PH.classList.contains('on')) PH.style.display = 'none'; }, REDUCED ? 0 : 220); }
-bq('.bPh').addEventListener('click', e => { e.stopPropagation(); phOn(); });
-$('phX').onclick = phOff; PH.onclick = e => { if (e.target === PH) phOff(); };
 let toastT = 0;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1800); }
 
@@ -1688,7 +1672,7 @@ function goChat(x, y) {
   window.__leaving = true;
   const q = []; if (!LIVE) q.push('demo=1'); if (dark) q.push('dark=1');
   const href = 'chat.html' + (q.length ? '?' + q.join('&') : '');
-  ssSet('niao-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
+  ssSet('ta-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
   const vw = innerWidth, vh = innerHeight, Rm = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y)) * 1.06, D = REDUCED ? 200 : 620;
   const cv = document.createElement('canvas'); cv.id = 'veil'; cv.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none;display:block'; document.body.appendChild(cv);
   const g = fitCanvas(cv, vw, vh), t0 = performance.now(), fill = dark ? C.INK : C.PAPER;

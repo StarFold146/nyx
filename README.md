@@ -42,42 +42,37 @@ New to servers? Start with [docs/新手上路.md](docs/新手上路.md).
 - `contacts.html` — Contacts: everyone you talk to, each behind its own relay; a seal with the first character of the name or a picture of your choosing. Tap one and the chat talks to them; the rest of the house stays with the first.
 - `town/` — Town: your companion's memory as a small town. One house per topic, one window per memory; see below.
 - `paper.js` — the paper every page sits on (grain, ink drops).
-- `niao/` — 祂, the second skin (2.0); see below.
+- `ta/` — 祂, the second skin (2.0); see below.
 - `config.js` — everything you change for your own install.
 
 ## Nyx 2.0.0: 祂
 
-2.0 adds a second skin, **祂**, in [`niao/`](niao/). It sits on the same relay, the same key and the same contacts as the
+2.0 adds a second skin, **祂**, in [`ta/`](ta/). It sits on the same relay, the same key and the same contacts as the
 rest of Nyx; only the pages are new. Switch to it from the drawer on the Nyx home page (**祂**, next to Ink and Tree),
-or set `home: "niao"` in `config.js` to make it the default. Inside 祂, the small stamp in the bottom-right corner of
+or set `home: "ta"` in `config.js` to make it the default. Inside 祂, the small stamp in the bottom-right corner of
 the home page opens **换皮肤** (skins): pick 祂, Ink or Tree. The choice is kept per device (`nyx_home`).
 
 What's in it:
 
-- **Home** (`index.html`, `main.js`): one page with a light and a dark side; flip it and every 祂 page follows (`niao_side`). Five entries (Chat, Home, Life, Listen, Hold); the rooms 祂 doesn't have yet (Attic, Room, Kitchen, Town) open the Nyx ones.
+- **Home** (`index.html`, `main.js`): one page with a light and a dark side; flip it and every 祂 page follows (`ta_side`). Five entries (Chat, Home, Life, Listen, Hold); the rooms 祂 doesn't have yet (Attic, Room, Kitchen, Town) open the Nyx ones.
 - **Chat** (`chat.html`, `chat.js`): one line per message; quotes, attachments (the **＋**), reactions, the emoji tray (mine / kaomoji / saved phrases / emoji), a pinned line in the group chat, the thinking effort and the window (context, new window, switch back) in the gauge, and calls.
 - **Calls** (`call.js`): tap the phone in the chat header. Your voice goes up to `/app/voice`, replies are read out with `/app/tts`; if TTS isn't set up the reply stays as a subtitle. When your companion calls you (`call` in the channel plugin) a thin bar shows under the header instead of a full-screen ring. Turn off talking over a reply with `localStorage.nyx_call_barge = "0"`.
 - **Contacts** (`people-go.html` → `people-f.html` or `people-a.html`, plus `people.html`, `who.html`): everyone from Nyx Contacts as stamps on a wall; tap one to change who the chat talks to, turn the stamp over for its model, usage and picture.
 - **口袋 (Pocket)** (`pocket.html`): links and notes you drop in from the phone, plus a to-do list your companion can add to (`/app/todo-inbox`).
-- **Listen** (`listen.html`): listen together from NetEase (same setup as Nyx Listen) and play recordings parked in the stash (`/app/stash`).
+- **Listen** (`listen.html`): listen together from NetEase (same setup as Nyx Listen).
 - **Board** and **Heart** (`board.html`, `heart.html`): the same Yard and Heart as Nyx, in this skin.
 - Small things: a tap effect (`tap.js`), and an edge swipe back from Heart / Board / Pocket to the chat (`pages.js`).
 
+Calls work with nothing extra: what the browser hears is sent as text. To have the server transcribe the recordings
+instead (better for Chinese, and works where the browser can't), turn on SenseVoice: `install.sh --stt`, or later
+`bash ~/nyx/relay/stt-sense/setup.sh`. It runs on the CPU at 127.0.0.1:3090 and downloads about 1 GB once and keeps a 230 MB model;
+see `relay/DEPLOY.md` (3b).
+
 Every page also opens with `?demo=1`: sample data, no requests, nothing written.
 
-New relay doors for 祂 (all in `relay/nyx_niao.py`, plus `/app/effort` and `/app/context` in `relay/nyx_extras.py`; see `relay/CHANGES.md`):
-`/app/react`, `/app/prefs`, `/app/group_pin`, `/app/pocket`, `/app/todo-inbox`, `/app/stash/*`, `/app/effort`, `/app/context`.
+New relay doors for 祂 (all in `relay/nyx_ta.py`, plus `/app/effort` and `/app/context` in `relay/nyx_extras.py`; see `relay/CHANGES.md`):
+`/app/react`, `/app/prefs`, `/app/group_pin`, `/app/pocket`, `/app/todo-inbox`, `/app/effort`, `/app/context`.
 Update the relay along with the pages, or those parts of 祂 will just stay empty.
-
-Putting a recording in the stash: there's no upload page yet. Send it from a terminal in chunks of up to 9 MB:
-
-```bash
-id=$(openssl rand -hex 6); size=$(stat -c %s song.m4a)
-curl -s -H "Authorization: Bearer $KEY" --data-binary @song.m4a "https://<your-site>/relay/app/stash/chunk?id=$id&off=0"
-curl -s -X POST -H "Authorization: Bearer $KEY" "https://<your-site>/relay/app/stash/done?id=$id&size=$size&name=song.m4a&mime=audio/mp4"
-```
-
-(For a file over 9 MB, split it and send each piece with `off` = bytes already sent.)
 
 ## It doesn't meet you again every window
 
@@ -302,12 +297,13 @@ Ask your companion for them in your own chat; it knows your relay better than we
 - The two readings of C·L·A·U·D·E on the opening card (day: Capable, Listen, Accompany, Understand, Discipline, Elegant; night: Confusion, Licentious, Aloof, Utilize, Desired, Encroach): 小红醋栗 on Xiaohongshu.
 - Memory, recommended: [Ombre-Brain](https://github.com/P0luz/Ombre-Brain) by P0luz (MIT), with Memory Galaxy on top by baci老师 on Xiaohongshu.
 - three.js (MIT); fonts Source Serif 4, Noto Serif SC, Pinyon Script (OFL).
+- Speech-to-text (optional, `relay/stt-sense/`): [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) by FunAudioLLM / [FunASR](https://github.com/modelscope/FunASR), model SenseVoice-Small (`sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`), under the FunASR Model License 1.1; run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Apache-2.0). The model is downloaded at install time, not shipped here.
 
 ## License
 
 The web pages: [CC BY-NC 4.0](LICENSE) (Attribution-NonCommercial 4.0 International) — noncommercial use only, credit StarFold146 with a link to this repo; commercial use needs written permission from StarFold146. Versions up to and including commit 78db25a were released under MIT and stay MIT. `relay/` and `channel/`: GNU AGPL v3, a modified version of Tidal Echo — see `relay/NOTICE`.
 
-`niao/` (祂) is part of the web pages and under the same CC BY-NC 4.0. Its call screen, `niao/call.js`, was written new for Nyx and is not taken from Tidal Echo's front end; it only talks to the relay's `/app/call`, `/app/voice` and `/app/tts`.
+`ta/` (祂) is part of the web pages and under the same CC BY-NC 4.0. Its call screen, `ta/call.js`, was written new for Nyx and is not taken from Tidal Echo's front end; it only talks to the relay's `/app/call`, `/app/voice` and `/app/tts`.
 
 > 协议：网页部分采用 署名-非商业性使用 4.0（CC BY-NC 4.0），只能非商业使用，要署名 StarFold146 并附仓库链接；商用需要 StarFold146 书面许可。78db25a 及之前的版本仍是 MIT。relay/ 和 channel/ 仍是 GNU AGPL v3。
 `assets/waternormals.jpg` is from the three.js examples (MIT, © three.js authors); three.js itself is loaded from jsDelivr.

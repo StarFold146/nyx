@@ -1,4 +1,4 @@
-"""Doors the 祂 (niao/) pages use that the rest of Nyx doesn't need.
+"""Doors the 祂 (ta/) pages use that the rest of Nyx doesn't need.
 
   POST /app/react                 {id, emoji}           the human's reaction on a message; empty emoji takes it back
   GET|POST /app/prefs             {ts, data}            a copy of the phone's settings (avatars, stickers, kaomoji…), last writer wins
@@ -7,9 +7,6 @@
                                   口袋: things shared from the phone; shared ones (by != "note") reach the AI in one batched note
   GET /app/todo-inbox             POST /app/todo-inbox {text, by}   POST /app/todo-inbox/ack {ids}
                                   a mailbox: the AI drops to-dos, the phone picks them up into its own list
-  POST /app/stash/chunk?id=&off=  POST /app/stash/done?id=&size=&name=&mime=   GET /app/stash/list
-  GET /app/stash/file/{id}        POST /app/stash/delete?id=
-                                  a few big files (recordings, videos) parked on the server; Listen plays recordings from here
 
 Everything sits next to the database (RELAY_DB's folder), never in the web folder.
 Mounted from nyx_extras.register. Part of the Nyx relay (a modified version of Tidal Echo), GNU AGPL v3.
@@ -19,21 +16,18 @@ import json
 import os
 import re
 import secrets
-import shutil
 import time
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, Request
-from fastapi.responses import FileResponse
 
 PREFS_MAX_BYTES = 12 * 1024 * 1024
 # keys a push that simply doesn't mention them must not wipe (a phone that lost its storage would otherwise blank them)
 PREFS_KEEP = ("nyx_avatar", "nyx_stickers", "nyx_kaomoji", "nyx_phrases")
 POCKET_NOTIFY_DELAY = int(os.environ.get("RELAY_POCKET_NOTIFY_DELAY", "180"))
 TODO_MAX_TEXT, TODO_MAX_BY, TODO_MAX_ITEMS = 200, 20, 100
-STASH_CHUNK = 9 * 1024 * 1024
 URL_RE = re.compile(r"https?://[^\s<>\"'，。]+")
 POCKET_SOURCES = (("xiaohongshu", "小红书"), ("xhslink", "小红书"), ("taobao", "淘宝"), ("tb.cn", "淘宝"), ("163.com", "网易云"),
                   ("163cn", "网易云"), ("jd.com", "京东"), ("bilibili", "B站"), ("b23.tv", "B站"), ("youtube", "YouTube"),
@@ -315,90 +309,3 @@ def register(app, g):
         if len(keep) != len(items):
             _write_json(todo_file, keep, private=True)
         return {"ok": True, "removed": len(items) - len(keep)}
-
-    # ---- stash: big files sent up in chunks, read back only with the key (not under /uploads) ----
-    stash_dir = Path(os.environ.get("RELAY_STASH_DIR", str(data_dir / "stash")))
-    stash_dir.mkdir(parents=True, exist_ok=True)
-    stash_meta = stash_dir / "stash.json"
-
-    def stash_load():
-        d = _read_json(stash_meta, {"items": []})
-        return d if isinstance(d, dict) and isinstance(d.get("items"), list) else {"items": []}
-
-    def stash_id(v):
-        v = str(v or "")
-        if not re.fullmatch(r"[0-9a-f]{12}", v):
-            raise HTTPException(status_code=400, detail="bad id")
-        return v
-
-    @app.post("/app/stash/chunk")
-    async def stash_chunk(request: Request):
-        check_auth(request)
-        q = request.query_params
-        sid = stash_id(q.get("id") or secrets.token_hex(6))
-        try:
-            off = int(q.get("off") or 0)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="bad off")
-        body = await request.body()
-        if not body or len(body) > STASH_CHUNK:
-            raise HTTPException(status_code=413, detail="chunk size")
-        part = stash_dir / (sid + ".part")
-        have = part.stat().st_size if part.exists() else 0
-        if off != have:
-            raise HTTPException(status_code=409, detail=f"expected off {have}")
-        with open(part, "ab") as f:
-            f.write(body)
-        return {"ok": True, "id": sid, "have": have + len(body)}
-
-    @app.post("/app/stash/done")
-    async def stash_done(request: Request):
-        check_auth(request)
-        q = request.query_params
-        sid = stash_id(q.get("id"))
-        part = stash_dir / (sid + ".part")
-        if not part.exists():
-            raise HTTPException(status_code=404, detail="no part")
-        size = part.stat().st_size
-        if str(q.get("size") or "") != str(size):
-            raise HTTPException(status_code=409, detail=f"size {size}")
-        name = re.sub(r"[\\/\x00-\x1f]", "_", str(q.get("name") or "file"))[:120]
-        m = re.search(r"\.([A-Za-z0-9]{1,6})$", name)
-        ext = m.group(1).lower() if m else "bin"
-        mime = (q.get("mime") or "application/octet-stream")[:80]
-        part.rename(stash_dir / f"{sid}.{ext}")
-        d = stash_load()
-        d["items"].insert(0, {"id": sid, "file": f"{sid}.{ext}", "name": name, "size": size, "mime": mime, "at": now_iso()})
-        _write_json(stash_meta, d)
-        return {"ok": True, "id": sid}
-
-    @app.get("/app/stash/list")
-    async def stash_list(request: Request):
-        check_auth(request)
-        return {"items": stash_load()["items"], "free": shutil.disk_usage(stash_dir).free}
-
-    @app.get("/app/stash/file/{sid}")
-    async def stash_file(request: Request, sid: str):
-        check_auth(request)
-        sid = stash_id(sid)
-        it = next((x for x in stash_load()["items"] if x.get("id") == sid), None)
-        if not it:
-            raise HTTPException(status_code=404, detail="not found")
-        dl = request.query_params.get("dl")
-        return FileResponse(stash_dir / it["file"], media_type=it["mime"], filename=it["name"] if dl else None,
-                            content_disposition_type="attachment" if dl else "inline")
-
-    @app.post("/app/stash/delete")
-    async def stash_delete(request: Request):
-        check_auth(request)
-        sid = stash_id(request.query_params.get("id"))
-        d = stash_load()
-        it = next((x for x in d["items"] if x.get("id") == sid), None)
-        for f in ([stash_dir / it["file"]] if it else []) + [stash_dir / (sid + ".part")]:
-            try:
-                f.unlink()
-            except FileNotFoundError:
-                pass
-        d["items"] = [x for x in d["items"] if x.get("id") != sid]
-        _write_json(stash_meta, d)
-        return {"ok": True}

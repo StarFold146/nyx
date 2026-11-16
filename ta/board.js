@@ -9,7 +9,7 @@
 const { C, TAU, PI, clamp, sstep, rng, dot, PERCH, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, Q, REDUCED } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), list = $('list'), secs = $('secs'), calls = $('calls'), noteEl = $('note'), addF = $('add'), addT = $('addt'), tb = $('tb');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const f2 = n => (Math.round(n * 100) / 100).toString();

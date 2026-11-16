@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <style>html.pre body{visibility:hidden}</style>
-<script>(function(){var d=document.documentElement,p='who',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<script>(function(){var d=document.documentElement,p='who',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('ta_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('ta-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f1eee6">
 <title>档案</title>
@@ -57,18 +57,9 @@ body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;o
 #sync{font-family:var(--mono),var(--fz);font-size:7.5px;letter-spacing:.04em;color:var(--fg3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sync a,#foot a{color:var(--lb);text-decoration:none;border-bottom:.5px solid var(--lb)}
 #skin{flex:none;font-size:9px;letter-spacing:.14em;font-weight:300;color:var(--fg2)!important;border-bottom-color:var(--fg3)!important}
-/* 查岗：一层纸，中间一台细线描的手机 */
-#ph{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:color-mix(in srgb,var(--bg) 94%,transparent);opacity:0;transition:opacity .2s}
-#ph.on{opacity:1}
-#ph .fr{position:relative;width:min(300px,78vw);height:min(600px,72vh);padding:9px;border:.5px solid var(--fg2)}
-#ph .fr::before{content:"";position:absolute;left:50%;top:3.5px;width:22px;margin-left:-11px;border-top:.5px solid var(--fg3)}
-#ph .fr::after{content:"";position:absolute;right:-4px;top:58px;height:26px;border-left:.5px solid var(--fg3)}
-#ph iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
-#ph button{font-size:10px;letter-spacing:.2em;color:var(--fg2);padding:3px 0;border-bottom:.5px solid var(--fg3);font-weight:300}
 #toast{position:absolute;z-index:11;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.14em;color:var(--fg2);font-weight:300;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
-@media (prefers-reduced-motion:reduce){#ph{transition:none}}
-</style>
+@media (prefers-reduced-motion:reduce){</style>
 </head>
 <body>
 <script>if(new URLSearchParams(location.search).get('hd')!=='small')document.body.classList.add('bighd');</script>
@@ -86,7 +77,6 @@ body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;o
     <div class="rd" id="rState"><span class="k">此刻</span><span class="v" id="vState" role="status" aria-live="polite"></span></div>
     <div class="rd act" id="aAv"><button type="button" id="bAv">换头像</button></div>
     <div class="rd act" id="aMe"><button type="button" id="bMe"><span class="me" id="meAv" aria-hidden="true"></span>换我的头像</button></div>
-    <div class="rd act" id="aPh" hidden><button type="button" id="bPh">查岗</button></div>
     <svg id="tearF" aria-hidden="true"></svg>
     <div id="foot"><span id="sync" role="status"></span><a id="skin" href="skin.html">回换皮页</a></div>
     <div id="toast" role="status"></div>
@@ -95,7 +85,6 @@ body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;o
   <button id="back" aria-label="回主页"></button>
   <canvas id="fx"></canvas>
 </div>
-<div id="ph" role="dialog" aria-modal="true" aria-label="查岗"><div class="fr"><iframe title="祂的手机"></iframe></div><button type="button" id="phX">放下手机</button></div>
 <script src="flap.js"></script>
 <script src="pages.js"></script>
 <script src="who.js"></script>

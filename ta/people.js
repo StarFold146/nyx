@@ -16,7 +16,7 @@
 const { C, TAU, PI, clamp, smoother, sstep, rng, Q, REDUCED, dot, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, iris, ssSet } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), list = $('list'), note = $('note');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -422,7 +422,7 @@ function goChat(x, y) {
   window.__leaving = true;
   const q = []; if (!LIVE) q.push('demo=1'); if (dark) q.push('dark=1');
   const href = 'chat.html' + (q.length ? '?' + q.join('&') : '');
-  ssSet('niao-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
+  ssSet('ta-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
   const vw = innerWidth, vh = innerHeight, Rm = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y)) * 1.06, D = REDUCED ? 200 : 620;
   const cv = document.createElement('canvas'); cv.id = 'veil'; cv.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none;display:block'; document.body.appendChild(cv);
   const g = fitCanvas(cv, vw, vh), t0 = performance.now(), fill = dark ? C.INK : C.PAPER;

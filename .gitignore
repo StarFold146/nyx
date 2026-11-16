@@ -11,3 +11,7 @@ channel/mcp.json
 town/.venv/
 town/.key
 town/.state.json
+relay/stt-sense/venv/
+relay/stt-sense/sherpa-onnx-sense-voice-*/
+relay/stt-sense/stt.log
+relay/stt-sense/stt.pid

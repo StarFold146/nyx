@@ -17,7 +17,7 @@
 const { C, TAU, PI, clamp, smoother, sstep, rng, Q, REDUCED, dot, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, iris, ssSet } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), list = $('list'), note = $('note');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -456,7 +456,7 @@ function goChat(x, y) {
   window.__leaving = true;
   const q = []; if (!LIVE) q.push('demo=1'); if (dark) q.push('dark=1');
   const href = 'chat.html' + (q.length ? '?' + q.join('&') : '');
-  ssSet('niao-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
+  ssSet('ta-hand', { to: 'chat', t: Date.now(), x, y, c: dark ? C.INK : C.PAPER, slot: info.slot, morph: info.morph });
   const vw = innerWidth, vh = innerHeight, Rm = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y)) * 1.06, D = REDUCED ? 200 : 620;
   const cv = document.createElement('canvas'); cv.id = 'veil'; cv.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none;display:block'; document.body.appendChild(cv);
   const g = fitCanvas(cv, vw, vh), t0 = performance.now(), fill = dark ? C.INK : C.PAPER;
@@ -468,7 +468,7 @@ function goChat(x, y) {
 }
 window.addEventListener('pageshow', ev => { if (ev.persisted) { window.__leaving = false; const v = document.querySelector('#veil[style*="z-index: 60"]'); if (v) v.remove(); } });
 
-/* ---------- 右上的切换钮（11/13 F 版加的）：去邮票夹（people-f.html），带上查询参数；选了哪套记在 niao_people_look ---------- */
+/* ---------- 右上的切换钮（11/13 F 版加的）：去邮票夹（people-f.html），带上查询参数；选了哪套记在 ta_people_look ---------- */
 function lookSVG(on) {   // on：当前这套（'f' 邮票 / 'a' 星球）实心蓝，另一套只留轮廓（同 people-f.js）
   let holes = ''; for (let i = 0; i <= 4; i++) { const x = 1 + i * 2.25; holes += `<circle cx="${f2(x)}" cy="1" r=".62"/><circle cx="${f2(x)}" cy="13" r=".62"/>`; } for (let i = 1; i < 6; i++) { const y = 1 + i * 2; holes += `<circle cx="1" cy="${y}" r=".62"/><circle cx="10" cy="${y}" r=".62"/>`; }
   const st = on === 'f' ? `<rect x="1" y="1" width="9" height="12" fill="var(--lb)" mask="url(#lkm)"/><rect x="2.9" y="2.9" width="5.2" height="8.2" fill="none" stroke="var(--bg)" stroke-width=".35"/>`
@@ -484,7 +484,7 @@ if ($('look')) {
   $('look').innerHTML = lookSVG('a');
   $('look').addEventListener('click', () => {
     if (window.__leaving) return;
-    try { localStorage.setItem('niao_people_look', 'f'); } catch (e) {}
+    try { localStorage.setItem('ta_people_look', 'f'); } catch (e) {}
     window.__leaving = true; stage.style.transition = REDUCED ? '' : 'opacity .16s'; stage.style.opacity = '0';
     setTimeout(() => { location.href = 'people-f.html' + location.search; }, REDUCED ? 0 : 170);
   });

@@ -1,6 +1,6 @@
 /* 个人信息页（初稿，11/12）：这位的档案，像一张标本签。
    上面一只大眼睛（聊天页页眉那只放大），头像在瞳孔里；虹膜一圈径向刻度、上睑一排短睫毛、铅笔辅助弧、量角弧、颗粒，扎成整页独一一堆细活。
-   眼睑上垂下一根蓝灰测绘线，线上挂读数：名字、备注（点了就地变一道细线输入）、模型、此刻；再往下挂几枚细线文字钮：换头像、换我的头像、查岗。
+   眼睑上垂下一根蓝灰测绘线，线上挂读数：名字、备注（点了就地变一道细线输入）、模型、此刻；再往下挂几枚细线文字钮：换头像、换我的头像。
    线脚一滴劈开的蓝泪。页脚一行：云上那份的状态，右边「回换皮页」。
    功能照搬 Nyx 的 lib/profile.js（只读）：
      localStorage  nyx_avatar{后缀}（这位的头像 dataURL）、nyx_avatar_me（我的头像，所有联系人共用）、
@@ -9,7 +9,6 @@
      头像：中心裁方、压到 256×256、白底、JPEG 0.88（同 profile.js 170–191）
      上云：GET/POST 家里那只（config.js 的 relay，钥匙 nyx_key）的 /app/prefs {ts, data}；data 是 localStorage 里匹配 SYNC_RE 的全部键；
            谁的 ts 新听谁的，本机改了 1.5 秒后推一份（同 profile.js 18–40，连 4e12 那条保护、补头像备注那条都照抄）
-     查岗：只在第一只（/relay）上有，盖一层 iframe（公版没有查岗页，打开是空白）
    读数另外问两个口子（跟联系人页、聊天页仪表一样）：GET <relay>/healthz（不带钥匙，plugin_subs > 0 是醒着）、GET <relay>/app/status 的 last_msg_age_sec、
      GET <relay>/app/meter 的 model.name（群不问）。
    ?demo=1 示例数据，一个请求都不发、不动 localStorage（换头像、改备注只存在内存里）。?dark=1 墨黑底。?relay=/relay-xx 指定看哪一位，不带就看 Nyx 现在选的那只。 */
@@ -18,7 +17,7 @@
 const { C, TAU, PI, clamp, smoother, rng, Q, REDUCED, dot, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco'), eye = $('eye');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -52,7 +51,6 @@ function resolve() {
   SUF = RELAY === '/relay' ? '' : RELAY === '/relay/g' ? '_group' : '_' + RELAY.replace(/^\/relay-?/, '').replace(/\W+/g, '_');   // 同 profile.js 11 行
   K_AV = 'nyx_avatar' + SUF; K_RK = 'nyx_profile_remark' + SUF;
   DEFAULT_AV = '';
-  $('aPh').hidden = true;   // 查岗只在第一只上有（同 profile.js 83 行）
   $('no').textContent = 'No. ' + RELAY.slice(1);
 }
 
@@ -137,7 +135,7 @@ function layout() {
   LX = Math.round(W * 0.34); lineTop = Math.round(lidY(LX, 1)) + 3;
   Y0 = Math.round(EY + 23 * ES + Math.min(78, H * 0.085));
   const RS = Math.round(clamp(H * 0.038, 26, 34)), AS = Math.round(clamp(H * 0.033, 24, 29));
-  const rows = ['rName', 'rRemark', 'rModel', 'rState'], acts = ['aAv', 'aMe'].concat($('aPh').hidden ? [] : ['aPh']);
+  const rows = ['rName', 'rRemark', 'rModel', 'rState'], acts = ['aAv', 'aMe'];
   let y = Y0;
   rows.forEach(id => { place($(id), y); y += RS; });
   y += Math.round(RS * 0.7);
@@ -365,21 +363,6 @@ $('eyeB').onclick = () => $('f1').click();
 $('bAv').onclick = () => $('f1').click();
 $('bMe').onclick = () => $('f2').click();
 
-/* ---------- 查岗：盖一层纸，中间一台细线描的手机，里面是查岗页（公版没有，空白） ---------- */
-const PH = $('ph');
-function phOn() {
-  const f = PH.querySelector('iframe');
-  if (!f.getAttribute('src') && !f.getAttribute('srcdoc')) {
-    if (LIVE) f.src = 'about:blank';
-    else f.srcdoc = `<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;display:grid;place-items:center;background:${dark ? C.INK : '#f8f6f0'};font:300 10px serif;letter-spacing:.2em;color:${C.GREY}">演示里不开这台手机</body>`;
-  }
-  PH.style.display = 'flex'; requestAnimationFrame(() => PH.classList.add('on'));
-  $('phX').focus();
-}
-function phOff() { PH.classList.remove('on'); setTimeout(() => { if (!PH.classList.contains('on')) PH.style.display = 'none'; }, REDUCED ? 0 : 220); }   // 收起来就整个拿掉，免得一层透明的盖着吃掉点击
-$('bPh').onclick = phOn; $('phX').onclick = phOff; PH.onclick = e => { if (e.target === PH) phOff(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && PH.classList.contains('on')) phOff(); });
-
 /* ---------- 小提示 ---------- */
 let toastT = 0;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1800); }
@@ -404,5 +387,5 @@ loadConfig().then(() => {
   revealIn(info, stage, () => { window.__revealed = true; });
   window.__ready = true;
 });
-window.__who = { state: () => ({ relay: RELAY, home: HOME, name: NAME, shown: shown(), remark: remark(), kAv: K_AV, kRk: K_RK, av: avNow().slice(0, 30), avLen: (ls(K_AV) || '').length, me: (ls(K_ME) || '').slice(0, 30), sync: syncNote, ready, st: ST, eo, phone: !$('aPh').hidden, editing }), layout, blink };
+window.__who = { state: () => ({ relay: RELAY, home: HOME, name: NAME, shown: shown(), remark: remark(), kAv: K_AV, kRk: K_RK, av: avNow().slice(0, 30), avLen: (ls(K_AV) || '').length, me: (ls(K_ME) || '').slice(0, 30), sync: syncNote, ready, st: ST, eo, editing }), layout, blink };
 })();

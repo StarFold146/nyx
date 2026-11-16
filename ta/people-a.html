@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <style>html.pre body{visibility:hidden}</style>
-<script>(function(){var d=document.documentElement,p='people',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('niao_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('niao-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
+<script>(function(){var d=document.documentElement,p='people',c=(/[?&]dark=/.test(location.search)?/[?&]dark=1/.test(location.search):(function(){try{return localStorage.getItem('ta_side')==='night'}catch(e){return false}})())?'#16171c':'#f1eee6';try{var h=JSON.parse(sessionStorage.getItem('ta-hand')||'null');if(h&&h.to===p&&Date.now()-h.t<15000&&h.c)c=h.c}catch(e){}d.style.background=c;d.className='pre';window.__pre={c:c};setTimeout(function(){d.classList.remove('pre')},5000)})()</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f1eee6">
 <title>家里 · 星图</title>
@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="pages.css">
 <style>
-/* 联系人：一人一行往下排。行首一颗雕版小星球，左边一根测绘线串起来；当前那一行线上一颗蓝节点、名字是蓝的，在忙的星球旁绕一颗蓝点。
-   右上角一处很小的铅笔装饰，其余是空纸。 */
+/* 联系人 A 版：一人一行往下排。行首一颗铅笔速写的小星球，左边一根测绘线串起来；当前那一行线上一颗蓝节点、名字是蓝的，在忙的星球旁走一颗蓝点。
+   底下一圈圈很淡的铅笔轨道铺过整张名单。 */
 body{--lb:var(--blue)} body.dark{--lb:#8794f2}
 :root{--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 #content{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
@@ -25,27 +25,28 @@ body.bighd #hd h1{font-size:11px;letter-spacing:.1em}
 body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;opacity:.045;pointer-events:none;line-height:1}
 #hd p{margin-top:6px;font-family:var(--mono),var(--fz);font-size:7.5px;letter-spacing:.06em;color:var(--fg3)}
 #hd p b{font-weight:400;color:var(--fg2)}
-#orn{position:absolute;top:14px;z-index:2;pointer-events:none}
-#list{position:relative;z-index:3;padding:118px 0 72px}
+/* 右上的切换钮（11/13 F 版加的）：一枚小邮票、一颗小星球，当前这套实心蓝 */
+#look{position:absolute;z-index:12;right:8px;top:16px;width:48px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+#look svg{display:block;width:30px;height:14px;overflow:visible}
+#look:active svg{opacity:.6}
+#list{position:relative;z-index:3;padding:112px 0 72px}
 #svy{position:absolute;left:0;top:0;display:block;overflow:visible;pointer-events:none}
-#svy .ln{opacity:.42}
-/* 一行：整行可点，行首星球，右边名字和一行极小的状态，最右一个很淡的序号 */
-.pl,.grp{position:relative;display:block;width:100%;height:60px;text-align:left;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.pl svg,.grp svg{position:absolute;left:58px;top:30px;transform:translate(-50%,-50%);display:block;overflow:visible;pointer-events:none}
-.pl .tag,.grp .tag{position:absolute;left:94px;top:50%;transform:translateY(-52%);white-space:nowrap;line-height:1}
-.tag b{display:block;font-weight:600;font-size:11.5px;letter-spacing:.01em;color:var(--fg)}
-.tag b small{font-weight:400;font-size:7px;letter-spacing:.04em;color:var(--fg3);margin-left:5px;font-family:var(--mono),var(--fz)}
-.tag i{display:block;margin-top:4px;font-style:normal;font-family:var(--mono),var(--fz);font-size:7px;letter-spacing:.03em;color:var(--fg3)}
+#svy .ln{opacity:.36}
+/* 一行：整行可点。行首星球，名字后面跟一行极小的灰字状态；序号压在测绘线左边 */
+.pl,.grp{position:relative;display:block;width:100%;height:56px;text-align:left;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.pl svg,.grp svg{position:absolute;left:58px;top:28px;transform:translate(-50%,-50%);display:block;overflow:visible;pointer-events:none}
+.pl .tag,.grp .tag{position:absolute;left:86px;top:50%;transform:translateY(-50%);white-space:nowrap;line-height:1}
+.tag b{font-weight:600;font-size:11.5px;letter-spacing:.02em;color:var(--fg)}
+.tag b small{font-weight:400;font-size:7px;letter-spacing:.04em;color:var(--fg3);margin-left:6px;font-family:var(--mono),var(--fz)}
+.tag i{margin-left:9px;font-style:normal;font-family:var(--mono),var(--fz);font-size:7px;letter-spacing:.03em;color:var(--fg3)}
 .tag i:empty{display:none}
-.no{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-family:var(--fe);font-style:italic;font-size:8px;color:var(--fg3);opacity:.45;line-height:1}
-.pl.off .body,.grp.off .body{opacity:.5}
-.pl.wait .body,.grp.wait .body{opacity:.32}
-.pl.off .tag b{color:var(--fg3);font-weight:400}
+.no{position:absolute;left:0;width:18px;top:50%;transform:translateY(-50%);text-align:right;font-family:var(--fe);font-style:italic;font-size:7.5px;color:var(--fg3);opacity:.7;line-height:1}
+.pl.wait .body,.grp.wait .body{opacity:.6}
+.pl.off .tag b,.grp.off .tag b,.pl.wait .tag b{color:var(--fg3);font-weight:400}
 .pl.cur .tag b,.grp.cur .tag b{color:var(--lb)}
 .pl:focus-visible,.grp:focus-visible{outline:none}
 .pl:focus-visible .tag b,.grp:focus-visible .tag b{text-decoration:underline .5px var(--fg3);text-underline-offset:3px}
-.pl:active svg,.grp:active svg{opacity:.7}
-#endnote{position:absolute;left:44px;font-size:7px;letter-spacing:.08em;color:var(--fg3);font-weight:300;opacity:.75;white-space:nowrap}
+.pl:active svg,.grp:active svg{opacity:.6}
 /* 安静的一行：加载中、读不到、没钥匙、没人 */
 #note{position:relative;z-index:5;margin:-40px 0 30px 44px;max-width:240px;font-size:10px;letter-spacing:.12em;color:var(--fg3);font-weight:300;line-height:1.4}
 #note[hidden]{display:none}
@@ -58,8 +59,8 @@ body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;o
   <canvas id="deco" aria-hidden="true"></canvas>
   <div id="content">
     <div id="hd"><h1><span class="en" aria-hidden="true">KIN</span>家里</h1><p id="cnt" aria-live="polite"></p></div>
-    <canvas id="orn" aria-hidden="true"></canvas>
-    <div id="list" role="group" aria-label="家里的每一位"><svg id="svy" aria-hidden="true"></svg><div id="endnote" aria-hidden="true">线稿是睡着 · 蓝点是在忙 · 蓝节点是正在聊</div></div>
+    <button id="look" type="button" aria-label="换成邮票夹"></button>
+    <div id="list" role="group" aria-label="家里的每一位"><svg id="svy" aria-hidden="true"></svg></div>
     <div id="note" role="status" hidden></div>
   </div>
   <button id="back" aria-label="回主页"></button>
@@ -67,6 +68,7 @@ body.bighd #hd h1 .en{left:-14px;top:-40px;font-size:86px;letter-spacing:.04em;o
 </div>
 <script src="flap.js"></script>
 <script src="pages.js"></script>
-<script src="people.js"></script>
+<script src="people-a.js"></script>
+<script src="tap.js?v=1115t"></script>
 </body>
 </html>

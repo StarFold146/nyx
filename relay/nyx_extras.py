@@ -133,8 +133,8 @@ def register(app, g):
     nyx_group.register(app, g)
     import nyx_keys   # keys for the companion's environment: /app/keys, /channel/keys
     nyx_keys.register(app, g)
-    import nyx_niao   # what the 祂 pages add: reactions, prefs, group pin, 口袋, to-do inbox, stash
-    nyx_niao.register(app, g)
+    import nyx_ta   # what the 祂 pages add: reactions, prefs, group pin, 口袋, to-do inbox
+    nyx_ta.register(app, g)
     global KEYS_FILE
     KEYS_FILE = nyx_keys.keys_file(g)
     check_auth, broadcast, now_iso = g["check_auth"], g["broadcast"], g["now_iso"]

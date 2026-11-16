@@ -1,8 +1,8 @@
 /* 点触特效（祂）：指尖落下，一粒蓝点，外面一圈铅笔细线带四道小刻度散开，约半秒淡掉。
    用法：任何页面末尾 <script src="tap.js"></script> 即可；不拦事件、不挡点击（pointer-events:none）。
-   深色：body 带 dark 类时线换成纸色。减少动态：只留蓝点淡出。localStorage niao_tap = "0" 可关。 */
+   深色：body 带 dark 类时线换成纸色。减少动态：只留蓝点淡出。localStorage ta_tap = "0" 可关。 */
 (function () {
-  try { if (localStorage.getItem('niao_tap') === '0') return; } catch (e) {}
+  try { if (localStorage.getItem('ta_tap') === '0') return; } catch (e) {}
   var NS = 'http://www.w3.org/2000/svg', BLUE = '#2238c0';
   var css = document.createElement('style');
   css.textContent =

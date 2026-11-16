@@ -25,7 +25,7 @@ Tidal Echo (https://github.com/anhe2021212-spec/Tidal_Echo, commit 860e5de)
 by anhe2021212-spec. Modifications copyright (C) 2026 StarFold146, also
 licensed under the GNU AGPL v3. What changed is listed in CHANGES.md.
 
-The Nyx web pages in the repository root (including niao/) are separate
+The Nyx web pages in the repository root (including ta/) are separate
 work under the Creative Commons Attribution-NonCommercial 4.0 International
 License (CC BY-NC 4.0); they only talk to this relay over HTTP. Versions up
 to and including commit 78db25a released those pages under the MIT License,

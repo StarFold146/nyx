@@ -14,7 +14,7 @@
 const { C, TAU, PI, clamp, rng, hash, dot, setupGrain, fitCanvas, spots, backMoon, homeInfo, revealIn, leaveHome, Q, REDUCED } = window.NP;
 const $ = id => document.getElementById(id);
 const stage = $('stage'), deco = $('deco');
-const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('niao_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（niao_side）
+const dark = Q.has('dark') ? Q.get('dark') === '1' : (() => { try { return localStorage.getItem('ta_side') === 'night'; } catch (e) { return false; } })();   // 网址没说就跟主页停在哪一面（ta_side）
 document.body.classList.toggle('dark', dark);
 const LIVE = Q.get('demo') !== '1';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -236,7 +236,7 @@ function drawSeam() {
 }
 
 /* =================================================================== 待办 =================================================================== */
-const TODO_KEY = 'nyx_todos', SEEN_KEY = 'niao_todo_seen';
+const TODO_KEY = 'nyx_todos', SEEN_KEY = 'ta_todo_seen';
 let demoTd = DEMO_TD.map(x => Object.assign({}, x));
 function loadTodos() { if (!LIVE) return demoTd.map(x => Object.assign({}, x)); try { const a = JSON.parse(localStorage.getItem(TODO_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
 function saveTodos(l) { if (!LIVE) { demoTd = l.map(x => Object.assign({}, x)); return; } try { localStorage.setItem(TODO_KEY, JSON.stringify(l)); } catch (_) {} }

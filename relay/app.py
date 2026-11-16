@@ -578,8 +578,9 @@ def save_upload_bytes(data: bytes, name: str, mime: str, prefix: str = "att") ->
     }
 
 
-def transcribe_with_command(audio_path: Path, mime: str) -> str:
-    """Optional local ASR hook. The command receives <audio_path> <mime> and prints a transcript."""
+def transcribe_with_command(audio_path: Path, mime: str):
+    """Optional local ASR hook. The command receives <audio_path> <mime> and prints a transcript.
+    [Nyx] Exit code 3 means it heard nothing; that returns None."""
     if not VOICE_TRANSCRIBE_CMD:
         return ""
     try:
@@ -592,6 +593,8 @@ def transcribe_with_command(audio_path: Path, mime: str) -> str:
         )
     except Exception:
         return ""
+    if proc.returncode == 3:   # [Nyx] the command heard nothing (silence): see relay/stt-sense/transcribe.py
+        return None
     if proc.returncode != 0:
         return ""
     return proc.stdout.strip()
@@ -871,6 +874,12 @@ async def app_voice(request: Request):
     stored = Path(upload["url"]).name
     local_audio = UPLOAD_DIR / stored
     transcript = transcribe_with_command(local_audio, mime)
+    if transcript is None:   # [Nyx] heard nothing: a call's silence or a cough stays out of the chat
+        try:
+            local_audio.unlink()
+        except OSError:
+            pass
+        return {"id": None, "text": "", "empty": True}
     text = ("🎤 " + transcript) if transcript else f"🎤 [语音] {HUMAN_NAME}发来一段语音；当前 relay 未配置 ASR，音频已作为附件送达。"
     meta = {
         "user": "human",
