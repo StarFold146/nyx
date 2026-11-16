@@ -1,5 +1,7 @@
 # Nyx
 
+作者在小红书叫「396」，没有 X（推特）账号。 · The author is on Xiaohongshu (RED) as “396” and has no X (Twitter) account.
+
 A day-and-night chat page for talking to your own AI companion through a self-hosted relay.
 One paper, two sides: the day side is grey-white paper and ink, the night side is black paper and rust.
 Flip the coin in the corner and the whole page turns over.
