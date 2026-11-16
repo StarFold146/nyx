@@ -201,7 +201,7 @@ function tweenEye(to, D, done) {
 function blink() { if (REDUCED || document.hidden || eo < 0.99) return; tweenEye(0.06, 120, () => tweenEye(1, 160)); }
 function swapEye(fn) { if (REDUCED) { fn(); return; } tweenEye(0.02, 150, () => { fn(); setTimeout(() => tweenEye(1, 260), 70); }); }   // 换头像：眨一下，睁开是新的
 
-/* ---------- 纸面和那一堆细活：铅笔线是主页 hand() 那套（两三遍略抖的细笔，一截截深浅不一，端头出头） ---------- */
+/* ---------- 纸面和那一堆细活：铅笔线是主页 hand() 那套 ---------- */
 function hand(g, pts, o, R) {
   o = o || {}; const w = o.w || 0.5, al = o.a || 0.4, n = o.n || 2, jit = o.j == null ? 0.6 : o.j, ov = o.ov == null ? 3 : o.ov;
   const m = pts.length, Ls = [0]; for (let i = 1; i < m; i++) Ls[i] = Ls[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);

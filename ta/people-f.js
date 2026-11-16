@@ -1,11 +1,11 @@
-/* 联系人页 · F 版「邮票夹」（11/13，主人自己的灵感：「联系人像翻文件夹一样，上下滑动出不同联系人，每一个都是一张邮票，到那个人的时候这个邮票就是在屏幕上正的明显的」「长邮票」）。
+/* 联系人页 · F 版「邮票夹」（11/13）：上下滑动换人，每人一张邮票。
    从 people.js 拷来改样子：数据、探测、写回选择、进聊天的转场、演示、提示都照旧；档案页 who.js 的功能并到邮票背面。
-   一屏只摆一枚竖长的大邮票（宽约屏宽三分之二、高约宽的 1.85 倍），端端正正：齿孔边、两道细线套框（四角内凹）、拱窗里一片铅笔星图，
+   一屏只摆一枚竖长的大邮票（宽约屏宽三分之二、高约宽的 1.85 倍）：齿孔边、两道细线套框（四角内凹）、拱窗里一片铅笔星图，
      星图中间是这位的画像：有头像嵌圆窗，没有就是一颗按人固定的铅笔小星球，一条直线劈两半（一半排线、一半只留轮廓加几根平行刻线，分界线两头出头带短划）；
      拱窗两肩一颗星芒、一弯小月，左边一列小刻度，右边竖排一行极小的赤纬；底下一行拉丁小型大写（这颗星球的名目 · 这位的名字）和面值式编号 N° 03。
    邮票右边竖排名字（中文小号加粗）、一行极小的状态。
    摆法：只有一沓邮票，从屏幕底下长上来（最前面那枚的脚落在底边上）。当前这位正对着人、往上抽出一截，是整页独一一整张；
-     后几位在它背后一层层往上退、各露一截顶，前两位朝人微倾、压住它的下部。不画夹子、褶、扣、绳，也不另画页码（邮票上有 N° 编号，页眉有总数）。
+     后几位在它背后一层层往上退、各露一截顶，前两位朝人微倾、压住它的下部。页码不另画（邮票上有 N° 编号，页眉有总数）。
    上下划（或滚轮、上下键）一格格翻过去：只改 transform，松手吸附到一位；快划可以连翻；到头有一点阻尼回弹。
    蓝：划到谁谁带蓝——每枚的画像底稿是铅笔排线，另有一层蓝箔（有头像、睡着的是右肩一弯蓝月），离正中越近这层越亮。
    状态：睡着 = 整枚褪淡、画像只剩虚线轮廓（旧票）；在忙 = 右上角压一段蓝邮戳弧加一颗蓝点；正在聊的那位 = 名字上头一粒蓝点。
@@ -149,7 +149,7 @@ const COL = dark
   : { ink: C.INK, pen: C.PEN, grey: C.GREY, blue: C.BLUE, face: '#f8f6f0', old: '#f3f0e8', gum: '#ebe7dc', sh1: 'rgba(43,44,50,.16)', sh2: 'rgba(43,44,50,.075)', fsh: 'rgba(22,23,28,.11)', fhi: '#fffdf7', fl: '#4959c0', fd: '#1b2c97', fe: '#1a2882' };
 const DPR = () => Math.min(window.devicePixelRatio || 1, 3);
 
-/* ---------- 铅笔：主页 hand() / hatch() 那套（两三遍略抖的细笔，一截截深浅不一，端头出头） ---------- */
+/* ---------- 铅笔：主页 hand() / hatch() 那套 ---------- */
 function hand(g, pts, o, R) {
   o = o || {}; const w = o.w || 0.5, al = o.a || 0.4, n = o.n || 2, jit = o.j == null ? 0.6 : o.j, ov = o.ov == null ? 3 : o.ov;
   const m = pts.length, Ls = [0]; for (let i = 1; i < m; i++) Ls[i] = Ls[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
@@ -304,7 +304,7 @@ function dual(a, b) {
     set(t, k, v) { t[k] = v; b[k] = v; return true; }
   });
 }
-/* 画像：一颗铅笔小星球，一条直线劈两半。实心那半：底稿是铅笔排线（中灰，不是一块黑），蓝层（md.fg）上是蓝箔，
+/* 画像：一颗铅笔小星球，一条直线劈两半。实心那半：底稿是铅笔排线，蓝层（md.fg）上是蓝箔，
    划到谁谁的蓝层亮起来；空的那半只留轮廓加四根平行刻线，再加各自一样特征。分界线两头出头、带短划。睡着：只剩虚线轮廓和分界线 */
 function planet(g, cx, cy, r, K, R, md) {
   const fg = !md.line && md.fg;
@@ -530,7 +530,7 @@ function drawFront(cd) {
 
 /* 倒着的那几枚：不用位图，也不用 CSS 3D（上两轮倒着的位图在合成时被重采样，线就糊了）。
    每枚先在自己的纸面坐标里画好一套简化线稿（齿孔纸边、两道套框、拱窗双线、窗台、一列小刻度、劈开的小星球、几十粒星、底行拉丁字和编号），
-   用一支「录笔」把 hand() 的抖动、断口、深浅录下来；每帧只把这些点按摆法表描到画布上再描，线永远是细线，转到什么角度都清楚。 */
+   用一支「录笔」把 hand() 的抖动、断口、深浅录下来；每帧只把这些点按摆法表描到画布上再描。 */
 function recPen() {
   const S = []; let cur = null, sub = [];
   const g = { lineCap: '', lineJoin: '', globalAlpha: 1, lineWidth: 0.5, strokeStyle: '',
@@ -626,7 +626,7 @@ function buildArt(cd) {
 }
 
 /* 背面：夜里的港，正面那层航线就是从这里出去的。一块蓝是拱窗里的夜空和水，上实下虚，下沿散成一道道水纹；窗里是负片（纸色细线）：灯塔、防波堤、远岸、一弯月亮、
-   水里断断续续的倒影。窗外同一片港接着用铅笔正片画出去：堤的延长线、泊着的船、码头、测深的小数字，越往外越松。两遍用同一串随机数，线在窗边接上。
+   水里断断续续的倒影。窗外同一片港接着用铅笔正片画出去：堤的延长线、泊着的船、码头、测深的小数字。两遍用同一串随机数，线在窗边接上。
    字段长在画里：此刻是灯塔的灯（醒着亮、在忙扫、睡着灭），船名就是名字，备注和模型是码头下一页航海日志上的两行，换头像这些是日志下面的图例。 */
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV'];
 function lampOf(c) { if (c.err || c.off) return 'off'; if (c.off == null || (LIVE && !keyOf(c))) return 'off'; return c.busy ? 'sweep' : 'on'; }
@@ -647,7 +647,7 @@ function archPoly(B, rag, R) {   // 拱窗：上沿半圆，两边竖直，下�
 function layoutBack(B) {   // 字段的 DOM 摆到画上对应的位置（和画布同一套数）
   const S = (sel, o) => Object.assign(bq(sel).style, o), px = n => Math.round(n) + 'px';
   S('.bh', { left: px(B.mL), right: px(B.u - B.mR), top: px(B.fo + 7) });
-  S('.nm', { left: px(B.mL), width: px(B.iw * 0.5), top: px(B.v * 0.105), height: '14px', justifyContent: 'flex-start', textAlign: 'left' });   // 名字和此刻站在左上的留白里
+  S('.nm', { left: px(B.mL), width: px(B.iw * 0.5), top: px(B.v * 0.105), height: '14px', justifyContent: 'flex-start', textAlign: 'left' });   // 名字和此刻放在左上
   S('.sa', { left: px(B.mL), width: px(B.iw * 0.5), top: px(B.v * 0.105 + 19), textAlign: 'left' });
   S('.rk', { left: px(B.mL), width: px(B.iw), top: px(B.yLg), height: '' });
   S('.md', { left: px(B.mL), width: px(B.iw), top: px(B.yLg + 15) });
@@ -724,8 +724,7 @@ function drawMoon(g, x, y, r, tilt, a) {   // 这套皮的月亮：一条线劈�
   g.stroke(); g.lineWidth = 0.5; g.globalAlpha = 0.9 * a; g.beginPath(); g.moveTo(x - ux * (r + 3.6), y - uy * (r + 3.6)); g.lineTo(x + ux * (r + 3.6), y + uy * (r + 3.6)); g.stroke();
   g.restore();
 }
-/* 背面的画（11/15 重画）：左边留白，灰的水纹一道实一道虚往右聚；右边是蓝的灯塔和船。
-   蓝和纸色跟着东西自己的形走（塔身的箍、船舷的一道白）；横向的碎条全从主体的边上拉出去；铅笔起稿线画密、出头不擦。 */
+/* 背面的画（11/15 重画）：灰的水纹一道实一道虚往右聚；右边是蓝的灯塔和船。纸色用在塔身的箍、船舷的一道白上。 */
 function drawQuay(g, B, lamp, seed, dm) {
   const { u, v, fo, mL, mR, yH, yQ } = B, R = rng(seed), Rw = rng(seed + 5), Rp = rng(seed + 9);
   const BLUE = C.BLUE, ba = (dark ? 0.82 : 1) * (lamp === 'off' ? 0.7 : 1), inkA = (dark ? 0.95 : 0.85) * (dm < 1 ? 0.8 : 1);
@@ -762,11 +761,11 @@ function drawQuay(g, B, lamp, seed, dm) {
     if (lamp !== 'off') for (let d = gw + 7; d < u * 0.86; d += 7.5) { hand(g, [[lx + ux * d, lampY + uy * d], [lx + ux * (d + 4.6), lampY + uy * (d + 4.6)]], { w: 0.5, a: ba * (0.9 - 0.5 * d / (u * 0.86)), n: 1, j: 0.25, ov: 0.3 }, Rp); }
     g.strokeStyle = COL.ink; for (let d = 24; d < u * 0.8; d += 11 + R() * 16) { const px = lx + ux * d, py = lampY + uy * d, l = R() < 0.3 ? 3 : 1.5; H([[px - uy * l, py + ux * l], [px + uy * l * 0.4, py - ux * l * 0.4]], pen(HT, { a: 0.34, ov: 0 })); }
     const a2 = PI * 0.93; for (let d = gw + 9; d < u * 0.5; d += 9) H([[lx + Math.cos(a2) * d, lampY + Math.sin(a2) * d], [lx + Math.cos(a2) * (d + 5), lampY + Math.sin(a2) * (d + 5)]], pen(HT, { a: 0.26, ov: 0.3 })); }
-  // —— 海：不用线，全用颗粒。疏密堆出明暗（左稀右密），浪是留出来的白（一层横向拉长的噪声当云）；塔和船底下的颗粒换成蓝 ——
+  // —— 海：全用颗粒，左稀右密，浪用一层横向拉长的噪声留出白；塔和船底下的颗粒换成蓝 ——
   { const hsh = (i, j) => { let n = (i * 374761393 + j * 668265263 + seed * 1442695) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };
     const vn = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy); const a = hsh(xi, yi), b2 = hsh(xi + 1, yi), c = hsh(xi, yi + 1), d = hsh(xi + 1, yi + 1); return a + (b2 - a) * sx + (c - a) * sy + (a - b2 - c + d) * sx * sy; };
     const fbm = (x, y) => 0.55 * vn(x, y) + 0.3 * vn(x * 2.1 + 7, y * 2.1 + 3) + 0.15 * vn(x * 4.3 + 1, y * 4.3 + 9);
-    // 11/15 下午：海要有形。一块往左下斜出去的水面：上沿是硬的视平线，下沿是码头，左岸是一条斜边（岸里实、岸外很快散掉）；浪是横着留出来的白；
+    // 11/15 下午：一块往左下斜出去的水面：上沿是硬的视平线，下沿是码头，左岸是一条斜边（岸里实、岸外很快散掉）；浪是横着留出来的白；
     // 黑跟着形走两处：船身在水里的倒影（一道道横条，越往下越窄越断）、塔脚下的防波堤（一只往左收尖的黑楔）。蓝只留塔、船和塔在水里的一小柱。
     const sy0 = yH + 1.5, sy1 = yQ - 1.5, SHh = sy1 - sy0, N = Math.round((x1 - x0) * SHh * 4.4), fx0 = u * 0.6, fy0 = yWl + v * 0.02, rx = u * 0.62, ry = SHh * 0.66;
     const xL = y => u * (0.5 - 0.4 * Math.pow(clamp((y - sy0) / SHh, 0, 1), 0.8));
@@ -827,7 +826,7 @@ function drawQuay(g, B, lamp, seed, dm) {
     for (let k = 0; k < 14; k++) { const a = k * TAU / 14 + 0.2, r0 = gw + 4, r1 = r0 + (k % 2 ? 2.4 : 5) + Rp() * 1.5; H([[lx + Math.cos(a) * r0, lampY + Math.sin(a) * r0], [lx + Math.cos(a) * r1, lampY + Math.sin(a) * r1]], pen(HT, { a: 0.5, ov: 0 })); }
     if (lamp === 'sweep') [[PI * 1.04, v * 0.42], [PI * 1.9, v * 0.12]].forEach(([a, len]) => { for (const sg of [-1, 1]) { const e = a + sg * 0.05; H([[lx + Math.cos(e) * (gw + 4), lampY + Math.sin(e) * (gw + 4)], [lx + Math.cos(e) * len, lampY + Math.sin(e) * len]], pen(OLs, { a: 0.42, n: 1, ov: 2 })); }
       g.fillStyle = BLUE; for (let d = gw + 8; d < len; d += 3 + Rp() * 3) { g.globalAlpha = 0.8 * (1 - d / len); g.beginPath(); g.arc(lx + Math.cos(a + (Rp() - 0.5) * 0.08) * d, lampY + Math.sin(a + (Rp() - 0.5) * 0.08) * d, 0.45, 0, TAU); g.fill(); } }); }
-  // 塔和船的铅笔边：只描一侧和几处结构线，不整圈勾死
+  // 塔和船的铅笔边：只描一侧和几处结构线
   g.strokeStyle = COL.ink; H([[lx + w0, tb], [lx + w1, tt]], pen(OLs, { a: 0.4 })); H([[lx - w1 - 3.6, tt - 2.6], [lx + w1 + 3.6, tt - 2.6]], pen(OLs, { a: 0.45, n: 1 })); H([[lx, gy1 - 4.2], [lx, gy1 - 9]], pen(OLs, { a: 0.55, n: 1, ov: 0.4 }));
   for (let k = 0; k <= 6; k++) { const x = lx - w1 - 3 + k * (w1 + 3) / 3; H([[x, tt], [x, tt - 2.6]], pen(HT, { a: 0.4, ov: 0 })); }
   H([hull[0], hull[1], hull[2]], pen(OLs, { a: 0.45 })); H([[hx0 + 1.5, ys + (yWl - ys) * 0.62], [hx0 - 1.4, yWl + 1.8], [hx0 + 5, yWl + 1.6]], pen(OLs, { a: 0.4, n: 1 }));
@@ -1001,8 +1000,8 @@ function PC(ps, a, b) {
   const v0 = b / SH, v = ps.k ? v0 * (1 + ps.k) / (1 + ps.k * v0) : v0, w = ps.wt + (ps.wb - ps.wt) * v, x = (a / SW - 0.5) * w, y = -ps.h * (1 - v);
   PX = ps.cx + x * ps.cs - y * ps.sn; PY = ps.by + x * ps.sn + y * ps.cs; PK = w / SW; PZ = ps.z;
 }
-/* 线稿描上去：纸（不透明，挡住后面的）、一道很淡的齿孔边、录下来的笔、星、底行字（按那一处的局部仿射摆）。
-   前面朝人倾的两枚：纸比纸面略灰一点，底下半截几道稀排线，齿孔边和线稿都描清楚 */
+/* 线稿描上去：纸（不透明，挡住后面的）、一道齿孔边、录下来的笔、星、底行字（按那一处的局部仿射摆）。
+   前面朝人倾的两枚：纸比纸面略灰一点，底下半截几道稀排线 */
 function drawV(g, cd, ps, al) {
   const A = cd.art; if (!A) return;
   const pp = A.paper, fr = clamp(ps.d, 0, 1.6); g.beginPath();
@@ -1366,7 +1365,7 @@ function drawRoutes(g) {
       const tp = Math.hypot(P[0] - O[0], P[1] - O[1]); rtDash(g, at(t0), at(tp - 8), 14, 5, { w: 0.38, a: al, n: 1, j: 0.5, ov: 1 }, R);
     } else if (sp.s === 'dot') rtDots(g, at(t0), at(t1), 3, al, R);
     else if (sp.s === 'dash') rtDash(g, at(t0), at(t1), 13 + R() * 6, 4 + R() * 2, { w: 0.4, a: al, n: 1, j: 0.5, ov: 1 }, R);
-    else if (sp.brk) {   // 半路断开再接上：接上的那一笔略错开一点、先描轻再描实
+    else if (sp.brk) {   // 半路断开再接上
       const tb = t0 + (t1 - t0) * sp.brk, gp = 7 + R() * 5, sh = 0.6 * (R() < 0.5 ? -1 : 1);
       hand(g, [at(t0), at(tb)], { w: 0.42, a: al, n: 2, j: 0.55, ov: 2 }, R);
       const b0 = at(tb + gp), b1 = at(t1); hand(g, [[b0[0] - uy * sh, b0[1] + ux * sh], [b1[0] - uy * sh * 0.3, b1[1] + ux * sh * 0.3]], { w: 0.4, a: al, n: 2, j: 0.55, ov: 3 }, R);
@@ -1379,7 +1378,7 @@ function drawRoutes(g) {
     g.globalAlpha = Math.min(0.5, al * 1.6); g.stroke(); g.globalAlpha = 1;
     for (const [tx, yf, sd] of sp.lb || []) { const t = (O[1] - yf * H) / -uy, p = at(t); if (t > t0 && t < t1 && p[0] > 12 && p[0] < W - 12) rtText(g, tx, p[0], p[1], ux, uy, sd, 0.42 * k); }
   });
-  // 纬线：近乎水平，很淡，有断口；只在左边两处和航线的交点上落点、十字
+  // 纬线：近乎水平；只在左边两处和航线的交点上落点、十字
   const LATS = [{ y: 0.158, tilt: -0.006, al: 0.11, gap: [0.62, 0.7] }, { y: 0.292, tilt: 0.004, al: 0.13, gap: [0.36, 0.4], fix: 1 }, { y: 0.565, tilt: -0.003, al: 0.1, dash: 1, fix: 1 }];
   const fixes = [];
   LATS.forEach(L => {

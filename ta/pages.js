@@ -42,7 +42,7 @@ function spots(g, w, h, seed, col) {
   g.fill();
 }
 
-/* 铅笔线：两三遍略抖的细笔，两头参差 */
+/* 铅笔线：多遍描，两头参差 */
 function pencil(g, pts, o) {
   o = o || {}; const Rn = o.rng || Math.random, n = o.n || 2, j = o.j === undefined ? 0.6 : o.j;
   g.lineWidth = o.w || 0.5; g.lineCap = 'round'; g.lineJoin = 'round';

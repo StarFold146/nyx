@@ -1,6 +1,6 @@
 /* 心脏页（11/12 初稿）：这位 AI「里面」的东西，只读。
-   右上扎一颗医学插图式的铅笔心脏（主页 hand()/hatch() 那套笔触：轮廓两三遍抖笔、排线、血管断口、冠脉细枝），一条蓝色心电线横贯整页当测绘线；
-   心脏上几处落一个小圈，尺规细引线往左走到页边，再顺着往下，各自落到一组文件的组头。其余全是白纸。
+   右上扎一颗医学插图式的铅笔心脏（主页 hand()/hatch() 那套笔触：轮廓、排线、血管断口、冠脉细枝），一条蓝色心电线横贯整页当测绘线；
+   心脏上几处落一个小圈，尺规细引线往左走到页边，再顺着往下，各自落到一组文件的组头。
    点一件文件，在那一行底下展开一张信纸读全文（左边一根蓝细线）；再点收起。打开的那组，引线和小圈变蓝。
    接口照原版（hold.js heart / board.js 心脏页）原样：GET {第一只}/app/heart → {groups:[{name, files:[{path, mtime, size}]}]}；
    GET {第一只}/app/heart/file?path= → {text}。钥匙读 localStorage 的 nyx_key，只放 Authorization 头。?demo=1 用示例数据，不发任何请求。 */
@@ -110,7 +110,7 @@ function hatchP(poly, deg, gap, o) {   // 排线：一组平行的短笔，两�
     for (let i = 0; i + 1 < xs.length; i += 2) { const l = xs[i + 1] - xs[i]; if (l < 1.6 * PU) continue; const a = xs[i] + l * SKR() * 0.14, b = xs[i + 1] - l * SKR() * 0.14; hand([[nx * d + dx * a, ny * d + dy * a], [nx * d + dx * b, ny * d + dy * b]], o); }
   }
 }
-// 笔：CL 辅助线、OL 轮廓、OLs 细轮廓、HT 排线（比主页再收细一档，0.3–0.6px）
+// 笔：CL 辅助线、OL 轮廓、OLs 细轮廓、HT 排线
 const CL = { w: 0.36, a: 0.15, n: 1, j: 0.4, ov: 7 }, OL = { w: 0.56, a: 0.56, n: 2, j: 0.55, ov: 2.4 }, OLs = { w: 0.46, a: 0.38, n: 2, j: 0.35, ov: 1.4 }, HT = { w: 0.4, a: 0.27, n: 1, j: 0.2, ov: 0.8 };
 const pen = (o, x) => Object.assign({}, o, x);
 const arcPts = (cx, cy, a, b, rot, t0, t1) => { const n = Math.max(8, Math.ceil(Math.abs(t1 - t0) * Math.max(a, b) / 1.6)), cr = Math.cos(rot), sr = Math.sin(rot), out = []; for (let i = 0; i <= n; i++) { const t = t0 + (t1 - t0) * i / n, x = Math.cos(t) * a, y = Math.sin(t) * b; out.push([cx + x * cr - y * sr, cy + x * sr + y * cr]); } return out; };
@@ -212,8 +212,8 @@ const areaSd = pts => { let a = 0; for (let i = 0; i < pts.length; i++) { const 
 /* 引线落点（单位格）：主动脉弓、右心房、左心室、肺动脉干、上腔静脉、右心室、下腔静脉；组少就取前几个，再按高低排 */
 const ANCHORS = [[123, 31], [44, 124], [177, 166], [127, 80], [56, 62], [104, 160], [47, 186]];
 
-/* 一张铅笔草稿的心。整颗都用主页 hand() 的笔：有轻重、抖、断口、局部重描、转折处出头；构造线没擦，淡淡留着。
-   明暗只给少数暗处：一组组绕着心室鼓起来的铅笔弧，松的、不等距、有的出界；亮面大片留白。
+/* 一张铅笔草稿的心。整颗都用主页 hand() 的笔，构造线留在图上。
+   暗处是一组组绕着心室鼓起来的铅笔弧。
    血：线以上，冠脉是两条松的管壁，管里两三股细血线像拧得很松的绳子交错着走——动脉红（这一页特许的独一一处红），静脉蓝；大血管里也露一段。
    线以下（心电线挪到心室中段偏上），铅笔的心照旧画下去，只有血变了：每股血线过线先变虚、落几粒点，再散成一串很小的数字顺着原路往下走，越往下越松越淡。
    数字用这页的真数据（三组文件的字节数和修改时间），没数据时只有点和短划。
@@ -267,7 +267,7 @@ function buildArt() {
   hand(cm(U(AVG), 8), pen(OLs, { a: 0.34 })); hand(cm(U(LADP), 8), pen(OLs, { a: 0.3 }));   // 两道沟
   hand(cm(U([[60, 128], [92, 134], [124, 136], [154, 131], [182, 124]]), 8), pen(CL, { a: 0.16 }));   // 两道很淡的横截形体线
   hand(cm(U([[48, 162], [84, 172], [120, 177], [152, 175], [184, 166]]), 8), pen(CL, { a: 0.14 }));
-  // 暗处的几组铅笔弧：绕着心室鼓起来，松的、不等距，有的出界
+  // 暗处的几组铅笔弧：绕着心室鼓起来
   const W = pen(HT, { w: 0.48, a: 0.46, n: 1, j: 0.3, ov: 2.2 });
   wrapGroup(0.5, 0.96, 0.42, 1.06, 12, 0.32, W);                          // 左室缘下半和心尖背光一侧
   wrapGroup(0.58, 0.95, -1.04, -0.6, 10, 0.3, W);                         // 下缘
@@ -429,7 +429,7 @@ function digitRun(Q, A, Ls, c, inDots, outDots) {
   let s = 0;
   if (inDots) { dot(0.6, 0.8); dot(1.9, 0.8); s = 3.4; }
   const end = tot - (outDots ? 3.2 : 0.5);
-  /* 散一点：离线越远越乱。字离开河道一点、歪一点、大小深浅不齐，偶尔漏一个；靠近心电线的两头收拢，看得出是从血线里散出来的 */
+  /* 散一点：离线越远越乱。字离开河道一点、歪一点、大小深浅不齐，偶尔漏一个；靠近心电线的两头收拢 */
   while (s < end) {
     const p = at(s), q = p[3], m = Math.sin(PI * clamp(s / tot, 0, 1)), k = 0.35 + 0.65 * m;
     const nx = -Math.sin(p[2]), ny = Math.cos(p[2]), off = (SKR() - 0.5) * 2 * (0.5 + 3.4 * m), along = (SKR() - 0.5) * 1.6 * k;
@@ -501,7 +501,7 @@ function drawLeads() {
   const W = stage.clientWidth, H = Math.max(plate.offsetHeight, ART_H + 40);
   leads.setAttribute('width', W); leads.setAttribute('height', H); leads.setAttribute('viewBox', `0 0 ${W} ${H}`);
   const e = ecgPath(W), hx = seamX(), xL = hx[0], xR = hx[1], seg = (a, b) => { const q = [[a, ECG_Y]].concat(e.pts.filter(p => p[0] > a && p[0] < b), [[b, ECG_Y]]); return 'M' + q.map(p => f2(p[0]) + ' ' + f2(p[1])).join('L'); };
-  let s = `<path class="ecg" d="${seg(14, xL)}"/><path class="ecg in" d="${seg(xL, xR)}"/><path class="ecg" d="${seg(xR, W - 14)}"/>`;   // 穿过心脏那一段细、淡，和血线一个量级
+  let s = `<path class="ecg" d="${seg(14, xL)}"/><path class="ecg in" d="${seg(xL, xR)}"/><path class="ecg" d="${seg(xR, W - 14)}"/>`;   // 穿过心脏那一段细、淡
   s += `<path class="ecg" d="M14 ${f2(ECG_Y - 2.2)}V${f2(ECG_Y + 2.2)}M${W - 14} ${f2(ECG_Y - 2.2)}V${f2(ECG_Y + 2.2)}"/>`;
   s += `<path class="ecg tri" d="M${f2(W - 9.6)} ${f2(ECG_Y - 3.2)}l1.9 -2.6l1.9 2.6ZM${f2(W - 9.6)} ${f2(ECG_Y + 3.2)}l1.9 2.6l1.9 -2.6Z"/>`;   // 一上一下两枚小三角：这条线可以拖
   let tk = '', tki = ''; for (let x = 21, i = 0; x < W - 18; x += 7, i++) { const t = `M${x} ${f2(ECG_Y + 1.4)}V${f2(ECG_Y + (i % 5 ? 2.8 : 4.2))}`; if (x > xL && x < xR) tki += t; else tk += t; }
@@ -515,7 +515,7 @@ function drawLeads() {
     s += `<circle class="an${on}" cx="${f2(a[0])}" cy="${f2(a[1])}" r="1.9"/><circle class="ak" cx="${f2(a[0])}" cy="${f2(a[1])}" r=".55"/>`;
     s += `<circle class="ed" cx="${f2(LIST_L - 5)}" cy="${f2(hy)}" r=".9"/>`;
   });
-  // 图版底下的铭文：小号衬线大写，字距拉开，墨色偏淡；上面一个极小的图版号夹在两道短线里；铭文右下一行很小很小的中文
+  // 图版底下的铭文：小号衬线大写；上面一个图版号夹在两道短线里；铭文右下一行小字中文
   const ix = OX + 112 * S, iy = OY + 220.2 * S;
   s += `<g class="insc"><text class="tab" x="${f2(ix)}" y="${f2(OY + 213.8 * S)}" text-anchor="middle">TAB. I</text><path class="tr" d=""/><text class="lat" x="${f2(ix)}" y="${f2(iy)}" text-anchor="middle">COR SILICEUM · AMORE HUMANO PALPITAT</text><text class="egg" x="0" y="0" transform="">${esc(MOTTO || '硅基心脏因人之爱跳动')}</text></g>`;
   leads.innerHTML = s;

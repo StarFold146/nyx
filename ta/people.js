@@ -1,5 +1,5 @@
 /* 联系人页（11/13 第三版，朴素列表）：一人一行往下排。
-   每行行首一颗雕版小星球（直径约 28px）：顺着球面走的弧形排线压出体积（暗面密、亮面留一条白，明暗交界清楚），每种画法各有一样表面特征：
+   每行行首一颗雕版小星球（直径约 28px）：顺着球面走的弧形排线压出体积（暗面密），每种画法各有一样表面特征：
      同心圈的环形坑、排线的交叉排线和嵌着的小方、月牙的几个坑、带环的（环从球后绕到前、环上有缝）、纬向条带、裂纹、刻度和极冠。
    画法按联系人的 relay 哈希定，跟列表顺序无关；撞了就顺延。有真头像时嵌在星球中心的小圆里。
    左边一根贯穿的测绘线（同聊天页那根：蓝灰细线、小刻度），每行一截短横接到星球；当前那一行线上一颗实心蓝节点，名字是蓝的。
@@ -122,7 +122,7 @@ function assignKinds() {
 const INK = 'var(--fg)';
 const P = pts => 'M' + pts.map(p => f2(p[0]) + ',' + f2(p[1])).join('L');
 const ln = (x0, y0, x1, y1) => `M${f2(x0)},${f2(y0)}L${f2(x1)},${f2(y1)}`;
-// 顺着球面走的排线（光从 -x 来）：k 是明暗交界的位置（-1..1），隔行长短不一，暗面密、交界外留一条白
+// 顺着球面走的排线（光从 -x 来）：k 是明暗交界的位置（-1..1），暗面密
 function shadeD(r, k, sp) {
   let d = '', i = 0;
   for (let o = -r + sp * 0.3; o < r; o += sp * 0.62, i++) {
@@ -193,7 +193,7 @@ function planetBody(o) {   // o: {r, kind, seed, line（只画线稿）, id}
       }
       lightG += `<path d="${s}" fill="none" stroke="${INK}" stroke-width=".3" stroke-linejoin="miter"/>`;
       break; }
-    default: {   // 刻度：边上一圈刻，逢三长一点；顶上一块极冠留白，边是一道虚的纬线
+    default: {   // 刻度：边上一圈刻，逢三长一点；顶上一块极冠，边是一道虚的纬线
       const ax = -14 + (Rn() - 0.5) * 16, cap = latArc(r, -0.68 * r, 0.24), capD = P(cap) + `A${f2(r)},${f2(r)} 0 0 0 ${f2(cap[0][0])},${f2(cap[0][1])}Z`;
       inClip = `<g transform="rotate(${f2(ax)})">${line ? '' : `<path d="${capD}" fill="var(--bg)"/>`}<path d="${P(cap)}" fill="none" stroke="${INK}" stroke-width=".3" stroke-dasharray=".7 .9"/></g>`;
       let t = ''; for (let k = 0; k < 36; k++) { const a = k / 36 * TAU, l = k % 3 === 0 ? 0.2 * r : 0.1 * r, ca = Math.cos(a), sa = Math.sin(a); t += ln(ca * r, sa * r, ca * (r - l), sa * (r - l)); }
@@ -211,7 +211,7 @@ function planetSVG(o) {   // o: {r, kind, seed, id, st, cur, av, S}
     sat = `<g class="sat" transform="rotate(${ringK ? 12 : -30})"><path d="${path}" fill="none" stroke="var(--fg2)" stroke-width=".3" stroke-dasharray="${f2(TAU * rx * 0.55)} 1.2 .6 1.2"/>
       <circle class="moon" r="1.35" fill="var(--lb)" ${REDUCED ? `cx="${f2(-rx * 0.62)}" cy="${f2(ry * 0.78)}"` : ''}>${REDUCED ? '' : `<animateMotion dur="36s" repeatCount="indefinite" path="${path}" begin="${-(o.seed % 30)}s"/>`}</circle></g>`;
   }
-  if (o.cur) {   // 当前这位：外面一段刻度弧和一小段双线（不用蓝，蓝留给名字和起航线）
+  if (o.cur) {   // 当前这位：外面一段刻度弧和一小段双线
     const R1 = r + 3.4; let t = '';
     for (let k = 0, a = 140; a <= 400.01; a += 8, k++) { const l = k % 4 === 0 ? 2.4 : 1.2, q = a * PI / 180, ca = Math.cos(q), sa = Math.sin(q); t += ln(ca * R1, sa * R1, ca * (R1 + l), sa * (R1 + l)); }
     const arc = (rr, b0, b1) => { const Pp = q => f2(Math.cos(q * PI / 180) * rr) + ',' + f2(Math.sin(q * PI / 180) * rr); return `M${Pp(b0)}A${f2(rr)},${f2(rr)} 0 ${b1 - b0 > 180 ? 1 : 0} 1 ${Pp(b1)}`; };
@@ -361,7 +361,7 @@ function drawUnder(g) {
   const rings = [96, 150, 214, 290, 380, 486, 610];
   g.save();
   rings.forEach((a, i) => {
-    // 只画朝左下的那一段（扫过名单的那边），每圈起止错开一点，像没擦干净的作图线
+    // 只画朝左下的那一段（扫过名单的那边），每圈起止错开一点
     const t0 = 1.15 + R() * 0.25, t1 = 3.55 + R() * 0.35, pts = []; for (let q = 0; q <= 90; q++) pts.push(at(a, t0 + (t1 - t0) * q / 90));
     g.strokeStyle = PEN; hand(g, pts, { w: 0.42, a: (i % 2 ? 0.17 : 0.24) * (dark ? 0.8 : 1), n: i % 3 === 0 ? 2 : 1, j: 0.5, ov: 2.5 }, R);
     // 圈上一小段刻度

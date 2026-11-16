@@ -104,7 +104,7 @@ function pkUpdate(it, body) {
 }
 const fmt = ts => { const d = new Date(ts); if (isNaN(d)) return ''; return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 /* 长链接收拾：网址整条不露，收成角上一行「来源 · 域名」；分享文案里夹的网址和「复制本条信息…」那句尾巴去掉；
-   表情和话题标签照留，但表情褪成灰、话题标签淡一档（整页只有一个蓝） */
+   表情和话题标签照留，但表情褪成灰、话题标签淡一档 */
 const URL_RE = /https?:\/\/[^\s<>"'，。！？；、（）【】「」]+/g;
 const BOILER = /复制(?:本条|这条)?信息[^\n]{0,40}?(?:查看精彩内容|App[^\n]{0,12}?查看(?:精彩内容)?)[!！。]?/g;
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
@@ -217,7 +217,7 @@ function drawSeam() {
   const y0 = 6, y1 = h - 40;
   // 测绘线：一根很淡的蓝硬线
   g.strokeStyle = inkBlue(); g.globalAlpha = 0.3; g.lineWidth = 0.5; g.beginPath(); g.moveTo(sx + 0.25, y0); g.lineTo(sx + 0.25, y1); g.stroke();
-  // 针脚：贴着测绘线右侧一道短划，长短略不齐，像手缝的
+  // 针脚：贴着测绘线右侧一道短划，长短略不齐
   g.strokeStyle = ink; g.lineWidth = 0.55; g.lineCap = 'butt'; g.globalAlpha = 0.5; g.beginPath();
   for (let y = y0 + 2; y < y1;) { const L = 2.6 + Rn() * 1.2, dx = (Rn() - 0.5) * 0.5; g.moveTo(sx + 3 + dx, y); g.lineTo(sx + 3 + dx + (Rn() - 0.5) * 0.4, y + L); y += L + 2.4 + Rn() * 0.8; }
   g.stroke();

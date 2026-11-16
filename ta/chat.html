@@ -161,7 +161,7 @@ figure.flash{outline:.5px solid var(--lb);outline-offset:3px}
 #content.intro .day.i-on .dt{opacity:1;transition:opacity .28s ease-out .08s}
 .day canvas{transform-origin:12.5px 13.3px}
 @keyframes stampIn{0%{opacity:0;transform:scale(1.15) rotate(-7deg)}55%{opacity:1;transform:scale(.97) rotate(1.4deg)}100%{opacity:1;transform:none}}
-/* ===== v26 接功能补的样子：都小、都用纸白 / 墨黑 / 铅笔灰 / 一个蓝；原来的版式一条没改 ===== */
+/* ===== v26 接功能补的样子 ===== */
 :root{--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 /* 思考、工具动作：等宽小字一行，不占楼层号 */
 .aux{position:relative;width:fit-content;margin-top:7px;font-family:var(--mono),var(--fz);font-size:9px;line-height:1.55;letter-spacing:.02em;color:var(--fg3);word-break:break-word;overflow-wrap:anywhere;cursor:pointer}
@@ -292,7 +292,7 @@ body.gated #say,body.gated #clip,body.gated #emo,body.gated #send,body.gated #kn
 #tray.live .kao button{width:auto;height:auto;padding:3px 8px;border:.5px solid var(--hair);font-size:12px;color:var(--fg);white-space:nowrap}
 #tray.live .kao .add{color:var(--fg3);border-style:dashed;font-size:11px;letter-spacing:.1em}
 #tray.live .tip{margin-top:7px;font-size:9.5px;letter-spacing:.1em;color:var(--fg3);font-weight:300}
-/* 11/13 ?fine=1：页眉和线脚的细活。画布在内容层最底下，不挡点；页眉图标线变细、尖角平头，各有一小块实心 */
+/* 11/13 ?fine=1：页眉和线脚的细活。画布在内容层最底下，不挡点；页眉图标各有一小块实心 */
 #fine{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
 body.fine #tools svg{stroke-width:.49;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:8}
 body.fine #tools svg .fb{fill:currentColor;stroke:none}
@@ -330,7 +330,7 @@ body.gauge-on #say,body.gauge-on #clip,body.gauge-on #emo,body.gauge-on #send{op
 body .vc .vc-av,body .vc .vc-inav{background:var(--bg) var(--vc-av,none) center/cover no-repeat}
 body .vc .vc-hang{background:var(--fg);color:var(--bg);box-shadow:0 8px 20px -8px rgba(22,23,28,.45)}
 body .vc .vc-cb,body .vc .vc-min,body .vc .vc-bar{border-width:.5px}
-/* 11/12 邮票（第四版）：从线脚往上长，跟仪表一个位置。线都在 0.2–0.5；重量只在几块负片窗上 */
+/* 11/12 邮票：从线脚往上长，跟仪表一个位置 */
 #tix{position:absolute;z-index:9;transform-origin:0 100%;--tk-face:#f8f6f0;--tk-sh:rgba(43,44,50,.16);filter:drop-shadow(0 .5px .6px var(--tk-sh)) drop-shadow(0 6px 10px rgba(43,44,50,.08))}
 body.dark #tix{--tk-face:#1f2026;--tk-sh:rgba(0,0,0,.6);filter:drop-shadow(0 .5px .8px var(--tk-sh)) drop-shadow(0 8px 16px rgba(0,0,0,.45))}
 #tix[hidden]{display:none}
@@ -352,7 +352,7 @@ body.dark #tix{--tk-face:#1f2026;--tk-sh:rgba(0,0,0,.6);filter:drop-shadow(0 .5p
 #tix .ico .h{fill:none;stroke:var(--lb);stroke-width:.25;stroke-linecap:butt;stroke-opacity:1}
 #tix .ico circle.l{fill:none}
 #tix .ico .pt circle{fill:var(--lb)}
-/* 第八版：蓝箔压进纸里——外沿左上一道纸色高光、右下一道淡墨影（都是硬边、错开不到半像素），里沿一圈深一点的蓝，箔面几道斜的亮带暗带 */
+/* 蓝箔压进纸里——外沿左上一道纸色高光、右下一道淡墨影（都是硬边、错开不到半像素），里沿一圈深一点的蓝，箔面几道斜的亮带暗带 */
 #tix .ico .sh{fill:rgba(22,23,28,.11)}
 #tix .ico .hi{fill:#fffdf7}
 #tix .ico .fl{fill:color-mix(in srgb,var(--lb) 79%,#f1eee6)}

@@ -1,7 +1,7 @@
-/* 鸟 · 月 · 眼 v13（第二态：第九版的莫比乌斯厚圈当井口；背后一整座铅笔灰的旋转楼梯当底图，最里面几圈落在洞里）—— 眼睛是第三版那只：蓝色的月亮当瞳孔，十七只燕子围成眼眶横压过它（负片换色）。
+/* 鸟 · 月 · 眼 v13（第二态：莫比乌斯厚圈当井口；背后一整座铅笔灰的旋转楼梯当底图，最里面几圈落在洞里）—— 眼睛：蓝色的月亮当瞳孔，十七只燕子围成眼眶横压过它（负片换色）。
    黑和灰是眼睛身后的底图：一块墨黑从上边框垂下来、贴右被裁，里面是白描的窗棂和一扇跟着轨道转的玫瑰窗；铅笔灰的拱廊从黑块的直边长出来，一跨接一跨往左退远。
    开屏只有一道闭着的眼；点一下：泪线一松一紧地垂下去（线头那只燕子跟着线速忽大忽小）、几何线一道道闩上、燕子挣脱往上飞、鸟群涌进来落成眼眶、黑块垂下、月亮长开、线稿一笔笔画出来。
-   第九版：底下的黑带拿掉，泪线下端吊一个小坠子；按住坠子往下拉，鸟群朝两边飞开，月亮缩成井底的瞳孔，带子长成一圈莫比乌斯环，踏步从井心一级级转出来，黑块收进洞里当阴影（第二页，入口照旧，换到带子上）；再拉一次变回眼睛。
+   形变：底下的黑带拿掉，泪线下端吊一个小坠子；按住坠子往下拉，鸟群朝两边飞开，月亮缩成井底的瞳孔，带子长成一圈莫比乌斯环，踏步从井心一级级转出来，黑块收进洞里当阴影（第二页，入口照旧，换到带子上）；再拉一次变回眼睛。
    ?morph=0..1 把形变定在某个进度（配 ?still=1）   ?splash=0 直接主页   ?still=1 冻结   ?t=0..1 把衔接定在某个进度   ?slot=0..4 哪一项落在焦点   ?orb=度数 入口轨道多转这么多   ?dial=home|life|hold 直接开转盘   ?rot=度数 定住转盘 */
 (() => {
 'use strict';
@@ -48,7 +48,7 @@ const dot = (g, x, y, r) => { if (r < 0.03) return; if (r < 0.6) g.rect(x - r, y
 function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round((w || W) * dpr)); c.height = Math.max(1, Math.round((h || H) * dpr)); const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); return [c, x]; }
 const P = (dx, dy) => [C.x + dx * US, C.y + dy * US];   // 玫瑰窗的设计坐标：相对圆心，窗的外半径记作 185
 
-/* ---------- 铅笔：每条线由两三遍略抖的笔触叠成，端头出头，粗细浓淡跟着压力走。切成小段存起来，可以按顺序一笔笔画 ---------- */
+/* ---------- 铅笔：每条线切成小段存起来，可以按顺序一笔笔画 ---------- */
 let UN = [], NPRE = 0, SR = rng(1), RT = [], skN = 0, pcv = null, pcx = null, wcv = null, wcx = null, BX = { x: 0, y: 0, w: 1, h: 1 };
 const FD1 = [1, 1];
 function hand(pts, o) {
@@ -222,7 +222,7 @@ function drawMoon(g, r, k, T) {   // k：黑块露出多少（月亮压在黑上
 }
 function pupil(g, pm) { if (pm < 0.01) return; g.fillStyle = PAPER; g.beginPath(); g.arc(C.x, C.y, 0.235 * R * pm, 0, TAU); g.fill(); g.fillStyle = INK; g.beginPath(); g.arc(C.x, C.y, 0.105 * R * pm, 0, TAU); g.fill(); }
 
-/* ---------- 眼：第三版那只。十七只燕子首尾相接围成眼眶，横着压过月亮；压在月亮和黑块上的部分纸白，纸上的部分蓝 ---------- */
+/* ---------- 眼：十七只燕子首尾相接围成眼眶，横着压过月亮；压在月亮和黑块上的部分纸白，纸上的部分蓝 ---------- */
 const EP = { A: 640, HU: 262, HL: 176, TILT: -7 * RAD };
 let EK = 1, ECX = 0, ECY = 0, RING = [], ODD = -1, BIG = null, FL = [];
 const lidQ = x => Math.max(0, 1 - (x / EP.A) * (x / EP.A));
@@ -261,7 +261,7 @@ function ringT(i, t) {
   const run = d.p3 + (t - d.td) * 2.1, end = d.p3 + d.dur * 2.1, tgt = s.ph + Math.ceil(end - s.ph);
   return { x: p[0], y: p[1], hd, sc: lerp(s.sc * 0.55, s.sc, smoother(u)), syy, ph: lerp(run, tgt, sstep(0.5, 1, u)), path: null, halo: sstep(0.8, 1, u), al: 1, grey: s.grey };
 }
-/* 燕子：纸上是蓝；压在黑块上、压在月亮上的那截换成纸白（负片）。落了位的在周围留一圈擦过的细缝，不和线稿糊在一起 */
+/* 燕子：纸上是蓝；压在黑块上、压在月亮上的那截换成纸白（负片）。落了位的在周围留一圈擦过的细缝 */
 function birdFill(g, p, col, solid) { if (p.col) col = p.col; const gc = p.grey && !solid ? GREY : col; if (p.dotr) { g.fillStyle = gc; g.beginPath(); g.arc(p.x, p.y, p.dotr, 0, TAU); g.fill(); return; } g.save(); birdTf(g, p); g.fillStyle = gc; g.fill(p.path || FB[fidx(p.ph)]); g.restore(); }   // solid：压在亮面上的那截不用浅灰，免得化进纸白里
 function ringDraw(g, PL, S) {
   const pass = (fill, halo) => { for (const p of PL) { if (!p || p.al < 0.01) continue; g.globalAlpha = p.al;
@@ -468,7 +468,7 @@ const FLT = new Float32Array(128), NFG = 3600, FGA = new Float32Array(NFG), FGD 
 { const Rn = rng(5151); for (let i = 0; i < NFG; i++) { FGA[i] = Rn() * TAU; FGD[i] = -Math.log(1 - 0.97 * Rn()) * 0.3 * (i % 3 ? 1 : -0.6); FGZ[i] = 0.35 + Rn() * 0.75; } }
 function floodPath(g) { for (let i = 0; i < 128; i++) { const th = i / 128 * TAU, x = C.x + Math.cos(th) * FLT[i], y = C.y + Math.sin(th) * FLT[i]; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.closePath(); }
 let darkCv = null;
-function darkBase() {   // 黑纸：墨黑上深深浅浅的细颗粒，和黑块同一套质感
+function darkBase() {   // 黑纸：墨黑上深深浅浅的细颗粒
   if (darkCv) return darkCv; const Rn = rng(8181); let x; [darkCv, x] = mkCanvas(); x.fillStyle = INK; x.fillRect(0, 0, W, H);
   const lite = new Path2D(), dark = new Path2D(), pap = new Path2D(), n = Math.round(W * H / 5);
   for (let k = 0; k < n; k++) { const px = Rn() * W, py = Rn() * H, nz = vnoise(px / (60 * U) + 7, py / (60 * U) + 3) * 0.7 + vnoise(px / (22 * U) + 1, py / (22 * U) + 5) * 0.3, r = Rn();
@@ -994,7 +994,7 @@ function layout() {
   dpr = Math.min(window.devicePixelRatio || 1, 3);
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   U = clamp(W / 430, 0.6, 1.8); UF = clamp(U, 0.92, 1.3);
-  R = 0.195 * W; RO = 1.55 * R; US = RO / 185; C.x = C0x = 0.70 * W; MX = C0x + 0.034 * W; MP = EC = EM = GK = SK = LK = 0; Rm = 0.175 * W; BW = 0.045 * W; DOFF = 0.045 * W; Rs = 0.69 * W; PULLD = 0.18 * H; C.y = Math.max(0.35 * H, 250 * U); RR = 1.8 * R; RDX = RDY = 0; FL3 = 0.6 * W; JTOP = 1e9; LT0 = 0; RMAX = Math.hypot(Math.max(C.x, W - C.x), Math.max(C.y, H - C.y)); FLK = FLR = 0; setPose(0, true);   // 月亮直径约屏宽 39%（第三版的六成五），在右上；第二态的环宽约屏宽五成
+  R = 0.195 * W; RO = 1.55 * R; US = RO / 185; C.x = C0x = 0.70 * W; MX = C0x + 0.034 * W; MP = EC = EM = GK = SK = LK = 0; Rm = 0.175 * W; BW = 0.045 * W; DOFF = 0.045 * W; Rs = 0.69 * W; PULLD = 0.18 * H; C.y = Math.max(0.35 * H, 250 * U); RR = 1.8 * R; RDX = RDY = 0; FL3 = 0.6 * W; JTOP = 1e9; LT0 = 0; RMAX = Math.hypot(Math.max(C.x, W - C.x), Math.max(C.y, H - C.y)); FLK = FLR = 0; setPose(0, true);   // 月亮直径约屏宽 39%，在右上；第二态的环宽约屏宽五成
   BLK.x = 0.68 * W; BLK.y1 = C.y + 120 * U;   // 黑块：左边直边正好切过月亮，底在月亮下面一点
   DR = 172 * U; DRD = 298 * U; DRM = 124 * U; DCX = -30 * U; DCY = H + 20 * U;
   buildEye(); buildSketch(); buildAux(); buildGeo(); buildPaper(); buildBlock(); buildDisc(); buildMorph(); buildDust(); buildDebris(); buildMorphSketch(); MOONS = null; homeCv = splashCv = darkCv = null;

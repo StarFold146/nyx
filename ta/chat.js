@@ -114,7 +114,7 @@ const inkBlue = () => (dark ? '#8794f2' : C.BLUE);
 
 function layout() {
   const r = stage.getBoundingClientRect(); W = r.width; H = r.height;
-  TX = Math.round(W * 0.12); COLW = Math.round(W * 0.78); IND = Math.round(COLW * 0.1); LX = TX - 9;   // 内容区约屏宽八成，右边仍留一整条白；测绘线在正文左边一点
+  TX = Math.round(W * 0.12); COLW = Math.round(W * 0.78); IND = Math.round(COLW * 0.1); LX = TX - 9;   // 内容区约屏宽八成；测绘线在正文左边一点
   EYE_Y = 80; LINE_Y = Math.round(H - 58 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0));
   eye.style.left = (LX - 32) + 'px'; eye.style.top = (EYE_Y - 22) + 'px';
   { const eb = $('eyeB'); if (eb) { eb.style.left = (LX - 32) + 'px'; eb.style.top = (EYE_Y - 22) + 'px'; } }   // 11/15：眼睛上盖的透明钮（#list 整页 z4 盖住了眼睛）   // 头像正压在测绘线的线头上
@@ -724,7 +724,7 @@ function drawIcons() {
   $('clip').innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>';
   $('emo').innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14"/><path d="M9 14.2c1.6 1.4 4.4 1.4 6 0"/><path d="M9.6 10h.01M14.4 10h.01"/></svg>';
 }
-/* ?fine=1：页眉四个图标换成跟邮票图标同一种刻法的迷你版：细线、尖角平头，每个里头一小块实心 */
+/* ?fine=1：页眉四个图标换成跟邮票图标同一种刻法的迷你版：每个里头一小块实心 */
 const TOOLS_FINE = {
   board: '<rect x="4.5" y="5" width="15" height="14"/><path class="fb" d="M4.5 5H9.5V10H4.5Z"/><path d="M9.5 5v14"/><path d="M14.5 5v14"/><path d="M11.3 9h1.4M11.3 12h1.4M16.2 9h1.4"/>',
   people: '<circle class="fb" cx="9" cy="9.5" r="2.6"/><path d="M4.5 18c.6-2.6 2.3-4 4.5-4s3.9 1.4 4.5 4"/><circle cx="16" cy="8.5" r="2"/><path d="M15 13.2c2-.2 3.6 1 4.2 3.3"/>',
@@ -754,9 +754,9 @@ function buildTools() {
   $('content').appendChild(tl);
 }
 
-/* ---------- 11/12 邮票（第四版）：点线脚的月相节点，从线脚往上长出一行四枚正方形邮票：仪表 / 心脏 / 工程板 / 口袋。
+/* ---------- 11/12 邮票：点线脚的月相节点，从线脚往上长出一行四枚正方形邮票：仪表 / 心脏 / 工程板 / 口袋。
    齿孔边、两道细线内框；每枚只有居中的小粗中文、垫在它底下的淡英文、一个面值小字；底下横贯一张星图，笔触照搬主页 hand()/hatch()。
-   中间一个实心蓝的简笔图标，细节用纸色反白刻出来（第五版；第四版那套斜负片窗已删）。
+   中间一个实心蓝的简笔图标，细节用纸色反白刻出来。
    仪表那枚点了收起邮票、原地展开现成的仪表；另外三枚跳 Nyx / 本站（样稿和本机只提示不跳）。点别处收回。 ---------- */
 const TIX = [
   { k: 'gauge', zh: '仪表', en: 'GAUGE', no: '00' },
@@ -772,7 +772,7 @@ function tixFrame(x, y, w, h, r) {   // 四角内凹的框
 }
 
 /* ---------- 铅笔：照搬主页 main.js 的 hand() / hatch()（画签绘建筑那套），参数一个没改，只把主页的单位 U 换成邮票上的 PU。
-   每条线两三遍略抖的笔触叠成，端头出头，粗细浓淡跟着压力走；后几遍只描一截。切成小段 {p,w,a} 存起来再一起画。 ---------- */
+   每条线切成小段 {p,w,a} 存起来再一起画。 ---------- */
 const PU = 0.5;
 let SKR = rng(1), SKU = [];
 function hand(pts, o) {
@@ -925,8 +925,8 @@ function tixSky(g, W0, H0, Rn, KEEP, col) {
   g.globalAlpha = 0.7; g.fillStyle = col.pen; g.font = '2.4px ui-monospace, Menlo, monospace'; for (const [t, x, y] of lbs) g.fillText(t, x, y);
   g.globalAlpha = 1;
 }
-/* 每枚中间一个「双色」刻线图标（第七版：往钢版雕刻邮票的刻线走）：细蓝轮廓 + 一条分界线劈成两半，一半实心蓝、一半纸色空着；
-   空的那半里三四根等距平行的细刻线当阴影；实心那半里的细节反白；分界线两头伸出外形，收一个小短划。线一律平头、尖角。坐标约 18px 见方 */
+/* 每枚中间一个「双色」刻线图标：细蓝轮廓 + 一条分界线劈成两半，一半实心蓝、一半纸色空着；
+   空的那半里三四根等距平行的细刻线当阴影；实心那半里的细节反白；分界线两头伸出外形，收一个小短划。坐标约 18px 见方 */
 const TIXPT = Q.get('pt') !== '0';   // 分界处的细颗粒：默认开，?pt=0 关
 /* 颗粒：沿分界线取点，往空的那半散出去，近密远稀（最远 3px 出头）；实心那半里掺几粒纸色飞白。base(t) 给分界线上 t∈[0,1] 处的点和指向空半边的法向 */
 function tixDust(base, seed, id) {
@@ -937,7 +937,7 @@ function tixDust(base, seed, id) {
   return `<g class="pt">${bl}</g><g class="ptw" clip-path="url(#${id}f)">${wh}</g>`;
 }
 const seg = (x0, y0, x1, y1, a, b) => t => { const u = a + (b - a) * t, L = Math.hypot(x1 - x0, y1 - y0); return [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, (y1 - y0) / L, -(x1 - x0) / L]; };   // 法向朝线的「右手」那边
-/* 第八版：实心蓝那半做成压进纸里的蓝箔。solid(cls) 给出「实心那块」的一个副本；box 是实心块里的东西（亮带、暗带、内凹边）要裁进去的那层 */
+/* 实心蓝那半做成压进纸里的蓝箔。solid(cls) 给出「实心那块」的一个副本；box 是实心块里的东西（亮带、暗带、内凹边）要裁进去的那层 */
 function tixFoil(solid, box, edges, rot) {
   const band = (o0, o1) => { const a = -35 * PI / 180, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux, L = 16; return `M${f2(nx * o0 - ux * L)} ${f2(ny * o0 - uy * L)}L${f2(nx * o0 + ux * L)} ${f2(ny * o0 + uy * L)}L${f2(nx * o1 + ux * L)} ${f2(ny * o1 + uy * L)}L${f2(nx * o1 - ux * L)} ${f2(ny * o1 - uy * L)}Z`; };
   const bands = `<g${rot ? ` transform="${rot}"` : ''}><path class="fl" d="${band(-2.6, .6)}"/><path class="fl" d="${band(2.8, 3.5)}"/><path class="fd" d="${band(-5.2, -4.5)}"/><path class="fd" d="${band(.6, 1.1)}"/></g>`;
@@ -958,7 +958,7 @@ function tixIcon(k, id) {
       ${tixDust(t => { const y = (t * 2 - 1) * r * 0.92, x = -(2 * k2 - 1) * Math.sqrt(r * r - y * y); return [x, y, -1, 0]; }, 71, id)}
       <path class="l" d="M-11 .8L11-.8"/><g clip-path="url(#${id}f)"><path class="w" d="M-11 .8L11-.8"/></g><path class="l" d="${ser(-11, .8, 11, -.8)}"/><circle class="l" r="${r}"/>`;
   }
-  if (k === 'heart') {   // 心电线以上实心，以下只有轮廓和几根斜刻线；肩是少弧近折线，凹口和底尖都是尖角，歪一点
+  if (k === 'heart') {   // 心电线以上实心，以下只有轮廓和几根斜刻线；肩是少弧近折线，凹口和底尖都是尖角
     const S = 'M.5 8.6L-6.9.4-8.3-3.3-7.6-6.3-5-7.6-2.3-7.2-.2-4.8 1.3-7.2 4.1-8 7.1-7.1 8.3-4 7-.3Z', E = 'M-12.4-.6H-4.2L-3-3.4-1.7 1.1 0-2.8 1-.6H12.4';
     return two(S, E + 'V-20H-12.4Z', E + 'V20H-12.4Z', E, 'M-12.4-1.5V.3M12.4-1.5V.3', '', hl(-50, [-3.2, -1.4, .4, 2.2]), '', tixDust(t => [-7.4 + t * 14.6, -.6, 0, 1], 72, id));
   }
@@ -1044,10 +1044,10 @@ function setTix(on, keepBody) {
 stage.addEventListener('click', ev => { if (tixOn && !ev.target.closest('#tix') && !ev.target.closest('#knot')) setTix(false); });   // 点别处收回（月相节点自己管开合）
 document.addEventListener('keydown', ev => { if (tixOn && ev.key === 'Escape') setTix(false); });
 /* ---------- 11/13 ?fine=1：页眉和线脚扎几小堆细活（正文那一栏一笔不加）。默认关，线上行为不变。
-   笔触用上面那套 hand()（照搬主页 main.js 画签绘建筑那支笔），线都在 0.3–0.45。画在内容层最底下一张透明画布上，眼睛的睫毛和刻度另外写进眼睛的 svg（要跟着眨）。
+   笔触用上面那套 hand()（照搬主页 main.js 画签绘建筑那支笔）。画在内容层最底下一张透明画布上，眼睛的睫毛和刻度另外写进眼睛的 svg（要跟着眨）。
    扎的几堆：① 眼睛：上睑一排短睫毛、虹膜外一圈径向细刻度、眼角一粒蓝、眼眶外两道没擦干净的铅笔弧；
    ② 测绘线顶端一个水准点（十字圈）和一行 6px 小注，线脚月相节点上方三道越来越密的短刻度；
-   ③ 线脚：燕子脚下那截线手绘重描一遍，额度小字前一小段分度尺；④ 页面四角极淡的裁切标记。 ---------- */
+   ③ 线脚：燕子脚下那截线手绘重描一遍，额度小字前一小段分度尺；④ 页面四角的裁切标记。 ---------- */
 const FINE = Q.get('fine') === '1';
 if (FINE) document.body.classList.add('fine');
 function fineUnits(g, units, col) { g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = col; for (const un of units) { g.globalAlpha = un.a; g.lineWidth = un.w; g.beginPath(); const p = un.p; g.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i], p[i + 1]); g.stroke(); } g.globalAlpha = 1; }
@@ -1075,14 +1075,14 @@ function drawFine() {
   const gy = LINE_Y + 13;
   if (LIVE) hand([[LX + 3, gy], [LX + 11.5, gy]], Object.assign({}, HT, { to: U2, a: 0.42, ov: 0.2, n: 1 }));   // 演示里没有额度那行，尺子也不画
   if (LIVE) for (let k = 0; k <= 4; k++) hand([[LX + 3 + k * 2.1, gy], [LX + 3 + k * 2.1, gy - (k % 2 ? 1.2 : 2.2)]], Object.assign({}, HT, { to: U2, a: 0.42, ov: 0.1, n: 1 }));
-  // ④ 四角裁切标记：很淡
+  // ④ 四角裁切标记
   const m = 9, L = 7;
   [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(([x, y, sx, sy]) => { hand([[x - sx * 2, y], [x + sx * L, y]], Object.assign({}, HT, { to: U1, a: 0.24, ov: 0.2, n: 1 })); hand([[x, y - sy * 2], [x, y + sy * L]], Object.assign({}, HT, { to: U1, a: 0.24, ov: 0.2, n: 1 })); });
   fineUnits(g, U1, PEN); fineUnits(g, U2, INK);
   // 小字和蓝点
   g.fillStyle = PEN; g.globalAlpha = 0.75; g.font = '6px ui-monospace, Menlo, monospace'; g.textBaseline = 'middle';
   g.textAlign = 'right'; g.fillText('BM ' + (floor ? '1–' + floor : '0'), LX - 6, ty); g.textAlign = 'left'; g.globalAlpha = 1;   // 小注放在线左边那一栏，不压正文
-  g.fillStyle = BL; g.beginPath(); g.arc(LX - 34, EYE_Y + 0.6, 0.9, 0, TAU); g.fill();   // 外眼角（左）一粒蓝，右眼角紧挨着名字，放那边像标点
+  g.fillStyle = BL; g.beginPath(); g.arc(LX - 34, EYE_Y + 0.6, 0.9, 0, TAU); g.fill();   // 外眼角（左）一粒蓝，右眼角紧挨着名字
 }
 /* 眼睛的细活：上睑一排长短不一的短睫毛（跟着眨），虹膜圈外一圈径向细刻度（被眼睑裁着） */
 function fineEyeStatic() {
@@ -1885,7 +1885,7 @@ function loadCall() {
     get ai() { return NAME; }, get group() { return GROUP; }, get relay() { return RELAY; }, get me() { return ME; },
     on: (t, fn) => { (shimBus[t] = shimBus[t] || []).push(fn); }, header: hdr, log: lg, messages: () => MSGS, esc, toast
   };
-  document.body.style.setProperty('--vc-av', 'url("' + String(AV || '').replace(/"/g, '%22') + '")');   // 通话界面圆心放这一只的头像（call.css 原来是一颗橘色星，这页橘色只留给螃蟹）
+  document.body.style.setProperty('--vc-av', 'url("' + String(AV || '').replace(/"/g, '%22') + '")');   // 通话界面圆心放这一只的头像（call.css 原来是一颗橘色星）
   callLoaded = new Promise(ok => { const sc = document.createElement('script'); sc.src = 'call.js?v=2.0.0'; sc.onload = () => ok(!!window.NyxCall); sc.onerror = () => ok(false); document.head.appendChild(sc); });
   return callLoaded;
 }
